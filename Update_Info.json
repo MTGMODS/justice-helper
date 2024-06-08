@@ -1,5 +1,11 @@
 {
+<<<<<<< HEAD
   "current_version": "1.0 Beta",
   "update_url": "https://google.com/",
   "update_info": "What is new:\n- Add test\n- Add test 2"
 }
+=======
+  "current_version": "1,0",
+  "update_url": "https://google.com"
+}
+>>>>>>> 6569b0f20b821e33e3754a3e205fdb3bf9dc2940
