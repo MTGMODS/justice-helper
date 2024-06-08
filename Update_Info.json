@@ -1,4 +1,5 @@
 {
-  "current_version": "0.99",
-  "update_url": "https://google.com"
+  "current_version": "1.0 Beta",
+  "update_url": "https://google.com/",
+  "update_info": "What is new:\n- Add test\n- Add test 2"
 }
