@@ -1,5 +1,5 @@
 {
-  "current_version": "1.0 Beta",
+  "current_version": "Beta 1",
   "update_url": "https://raw.githubusercontent.com/MTGMODS/justice-helper/main/Justice_Helper.lua",
-  "update_info": "What is new:\n- Add test\n- Add test 2"
+  "update_info": "- Добавлена система умной выдачи розыска\n- Добавлена система умной выдачи штрафов\n- Прочие мелкие фиксы"
 }

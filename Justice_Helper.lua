@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('Cross-platform script helper for Ministry of Justice (FBI and Police)')
 script_author("MTG MODS")
-script_version("1.0 Beta")
+script_version("Beta 1")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -20,6 +20,7 @@ local default_settings = {
 		rp_chat = true,
         rp_gun = true,
 		auto_uval = false,
+		use_form_su = false,
 		moonmonet_theme_enable = true,
 		moonmonet_theme_color = 40703,
 		mobile_fastmenu_button = true,
@@ -142,7 +143,7 @@ local default_settings = {
 		{ cmd = 'time' , description = 'Посмотреть время' ,  text = '/me взглянул{sex} на свои часики и посмотрел{sex} время&/time&/do На часах видно время {get_time}.' , arg = '' , enable = true, waiting = '1.200' , deleted = false },
         { cmd = 'pas' , description = 'Запросить документы (PD)' ,  text = 'Здраствуйте, управление {fraction_tag}, я {fraction_rank} {my_ru_nick}&/do Cлева на груди жетон полицейского, справа именная нашивка с именем.&/me  достаёт своё удостоверение из кармана&/showbadge {arg_id}&Прошу предъявить документ, удостоверяющий вашу личность.&/n {get_nick({arg_id})}, введите /showpass {my_id}' , arg = '{arg_id}' , enable = true , waiting = '1.200', deleted = false  },
         { cmd = 'pass' , description = 'Запросить документы (FBI)' ,  text = 'Здраствуйте, я {fraction_rank} ФБР&/do Cлева на груди спец-жетон ФБР.&Прошу предъявить документ, удостоверяющий вашу личность.&/n {get_nick({arg_id})}, введите /showpass {my_id}' , arg = '{arg_id}' , enable = false , waiting = '1.200', deleted = false  },
-        { cmd = 'tt' , description = 'Выписать штраф' ,  text = '/do Бланк протокола и ручка находяться в нагрудном кармане.&/me достаёт из нагрудного кармана бланк протокола и ручку.&/me вписывает в бланк данные нарушителя&/do Бланк протокола заполнен.&/me передаёт бланк со штрафом нарушителю для дальнейшей оплаты&/writeticket {arg_id} {arg2} {arg3}' , arg = '{arg_id} {arg2} {arg3}' , enable = true, waiting = '1.200' , deleted = false },
+        { cmd = 'ts' , description = 'Выписать штраф' ,  text = '/do Бланк протокола и ручка находяться в нагрудном кармане.&/me достаёт из нагрудного кармана бланк протокола и ручку.&/me вписывает в бланк данные нарушителя&/do Бланк протокола заполнен.&/me передаёт бланк со штрафом нарушителю для дальнейшей оплаты&/writeticket {arg_id} {arg2}' , arg = '{arg_id} {arg2}' , enable = true, waiting = '1.200' , deleted = false },
         { cmd = 'pr' , description = 'Погоня' ,  text = '/pursuit {arg_id}' , arg = '{arg_id}' , enable = true, waiting = '1.200' , deleted = false },
         { cmd = 'su' , description = 'Выдать розыск' ,  text = '/me достаёт свой КПК и открывает базу данных преступников&/me вносит изменения в базу данных преступинков&/do Преступник занесён в базу данных преступиков.&/su {arg_id} {arg2} {arg3}&/z {arg_id}' , arg = '{arg_id} {arg2} {arg3}' , enable = true, waiting = '1.200' , deleted = false },
         { cmd = 'fsu' , description = 'Запросить выдачу розыска' ,  text = '/do Рация на тактическом поясе.&/me достаёт рацию и связавается с диспетчером&/me передаёт диспетчеру запрос на внесение человека в базу данных преступников&{my_doklad_nick} на CONTROL&Прошу обьявить в розыск {arg2} степени дело N-({arg_id}). Причина: {arg3}' , arg = '{arg_id} {arg2} {arg3}' , enable = true, waiting = '1.200' , deleted = false },
@@ -290,7 +291,7 @@ function load_smart_pdd()
 			else
 				local result, loaded = pcall(decodeJson, contents)
 				if result then
-					smart_uk = loaded
+					smart_pdd = loaded
 					print('[Justice Helper] Умный штраф инициализирован!')
 				else
 					print('[Justice Helper] Не удалось открыть файл с умным штрафом!')
@@ -362,6 +363,10 @@ local SobesMenu = imgui.new.bool()
 
 local SumMenuWindow = imgui.new.bool()
 local input_sum = imgui.new.char[128]()
+local checkbox_sum = imgui.new.bool(settings.general.use_form_su)
+
+local TsmMenuWindow = imgui.new.bool()
+local input_tsm = imgui.new.char[128]()
 
 local InformationWindow = imgui.new.bool()
 
@@ -839,14 +844,31 @@ function initialize_commands()
 	sampRegisterChatCommand("sum", function(arg) 
 		if not isActiveCommand then
 			if isParamSampID(arg) then
-				if #smart_uk == 0 then
+				if #smart_uk ~= 0 then
 					player_id = tonumber(arg)
 					SumMenuWindow[0] = true 
 				else
-					sampAddChatMessage('[Justice Helper] {ffffff}Сначало загрузите/отредакртируйте умный розыск в /hh', message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Сначало загрузите/отредактируйте умный розыск в /jh', message_color)
 				end
 			else
 				sampAddChatMessage('[Justice Helper] {ffffff}Используйте ' .. message_color_hex .. '/sum [ID игрока]', message_color)
+			end	
+		else
+			sampAddChatMessage('[Justice Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!', message_color)
+		end
+
+	end)
+	sampRegisterChatCommand("tsm", function(arg) 
+		if not isActiveCommand then
+			if isParamSampID(arg) then
+				if #smart_pdd ~= 0 then
+					player_id = tonumber(arg)
+					TsmMenuWindow[0] = true 
+				else
+					sampAddChatMessage('[Justice Helper] {ffffff}Сначало загрузите/отредактируйте умные штрафы в /jh', message_color)
+				end
+			else
+				sampAddChatMessage('[Justice Helper] {ffffff}Используйте ' .. message_color_hex .. '/tsm [ID игрока]', message_color)
 			end	
 		else
 			sampAddChatMessage('[Justice Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!', message_color)
@@ -1327,8 +1349,8 @@ local rpTakeNames = {{"из-за спины", "за спину"}, {"из кармана", "в карман"}, {"
 local rpTake = {
 	[2]=1, [5]=1, [6]=1, [7]=1, [8]=1, [9]=1, [14]=1, [15]=1, [25]=1, [26]=1, [27]=1, [28]=1, [29]=1, [30]=1, [31]=1, [32]=1, [33]=1, [34]=1, [35]=1, [36]=1, [37]=1, [38]=1, [42]=1, [77]=1, [78]=1, [78]=1, [79]=1, [80]=1, [81]=1, [82]=1, [83]=1, [84]=1, [85]=1, [86]=1, [92]=1, [87]=1, [88]=1, -- спина
 	[1]=2, [4]=2, [10]=2, [11]=2, [12]=2, [13]=2, [41]=2, [43]=2, [44]=2, [45]=2, [46]=2, -- карман
-	[16]=3, [17]=3, [18]=3, [39]=3, [40]=3, [90]=3, [91]=3, -- пояс
-	[3]=4, [22]=4, [23]=4, [24]=4, [71]=4, [72]=4, [73]=4, [74]=4, [75]=4, [76]=4, [89]=4, -- кобура
+	[16]=3, [17]=3, [18]=3, [39]=3, [40]=3, [90]=3, [91]=3, [3]=3,  -- пояс
+	[22]=4, [23]=4, [24]=4, [71]=4, [72]=4, [73]=4, [74]=4, [75]=4, [76]=4, [89]=4, -- кобура
 }
 for id, weapon in pairs(weapons.names) do
 	if (id == 3 or (id > 15 and id < 19) or (id == 90 or id == 91)) then -- 3 16 17 18 (for gunOn)
@@ -2218,6 +2240,7 @@ function getARZServerNumber()
 end
 function check_update()
 	print('[Justice Helper] Начинаю проверку на наличие обновлений...')
+	sampAddChatMessage('[Justice Helper] {ffffff}Начинаю проверку на наличие обновлений...', message_color)
 	local path = configDirectory .. "/Update_Info.json"
 	os.remove(path)
 	local url = 'https://raw.githubusercontent.com/MTGMODS/justice-helper/main/Update_Info.json'
@@ -2232,13 +2255,15 @@ function check_update()
 					print("[Justice Helper] Текущая установленная версия:", thisScript().version)
 					print("[Justice Helper] Текущая версия в облаке:", uVer)
 					if thisScript().version ~= uVer then
-						print('[Justice Helper] Доступно обновление! Используйте /update')
+						print('[Justice Helper] Доступно обновление!')
+						sampAddChatMessage('[Justice Helper] {ffffff}Доступно обновление!', message_color)
 						updateUrl = uUrl
 						updateVer = uVer
 						updateInfoText = uText
 						UpdateWindow[0] = true
 					else
 						print('[Justice Helper] Обновление не нужно!')
+						sampAddChatMessage('[Justice Helper] {ffffff}Обновление не нужно, у вас актуальная версия!', message_color)
 					end
 				end
 			end
@@ -2254,37 +2279,33 @@ function check_update()
 					print("[Justice Helper] Текущая установленная версия:", thisScript().version)
 					print("[Justice Helper] Текущая версия в облаке:", uVer)
 					if thisScript().version ~= uVer then
-						print('[Justice Helper] Доступно обновление! Используйте /update')
+						print('[Justice Helper] Доступно обновление!')
+						sampAddChatMessage('[Justice Helper] {ffffff}Доступно обновление!', message_color)
 						updateUrl = uUrl
 						updateVer = uVer
 						updateInfoText = uText
 						UpdateWindow[0] = true
 					else
 						print('[Justice Helper] Обновление не нужно!')
+						sampAddChatMessage('[Justice Helper] {ffffff}Обновление не нужно, у вас актуальная версия!', message_color)
 					end
 				end
 			end
 		end)
 	end
 	function readJsonFile(filePath)
-		-- Проверяем, существует ли файл
 		if not doesFileExist(filePath) then
 			print("[Justice Helper] Ошибка: Файл " .. filePath .. " не существует")
 			return nil
 		end
-	
-		-- Читаем содержимое файла
 		local file = io.open(filePath, "r")
 		local content = file:read("*a")
 		file:close()
-	
-		-- Декодируем JSON
 		local jsonData = decodeJson(content)
 		if not jsonData then
 			print("[Justice Helper] Ошибка: Неверный формат JSON в файле " .. filePath)
 			return nil
 		end
-	
 		return jsonData
 	end
 end
@@ -2561,9 +2582,12 @@ function sampev.onServerMessage(color,text)
 	if text:find('DEBUG') or text:find('Mobile') then
 		return false
 	end
-	if text:find("Вы успешно надели маску") or text:find("Теперь вы в маске") then
+	if text:find("Вы успешно надели маску") then
 		maska = true
 		sampAddChatMessage('[Justice Helper] {ffffff}Вы надели маску', message_color)
+		return false
+	end
+	if text:find("Теперь вы в маске") then
 		return false
 	end
 	if text:find("Вы успешно выкинули маску") or text:find("Вы сняли маску") then
@@ -2735,6 +2759,9 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 						working = true
 					end
 					table.insert(members_new, { nick = nickname, id = id, rank = rank, rank_number = rank_number, warns = warns, afk = afk, working = working })
+
+
+
 				end
             end
             if line:match('Следующая страница') then
@@ -2751,6 +2778,66 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 			members = members_new
 			members_check = false
 			MembersWindow[0] = true
+		
+			local rank_counts = {}
+        for _, member in ipairs(members_new) do
+            local rank = tonumber(member.rank_number) -- преобразование ранга в число
+            if rank_counts[rank] == nil then
+                rank_counts[rank] = 1
+            else
+                rank_counts[rank] = rank_counts[rank] + 1
+            end
+        end
+
+        -- Сортировка рангов
+        local sorted_ranks = {}
+        for rank in pairs(rank_counts) do
+            table.insert(sorted_ranks, rank)
+        end
+        table.sort(sorted_ranks)
+
+        -- Вывод количества игроков каждого ранга
+        local output = ""
+        for _, rank in ipairs(sorted_ranks) do
+            output = output .. rank .. " ранг: " .. rank_counts[rank] .. " игроков; "
+        end
+        print(output)
+
+        -- Распределение 50 миллионов вирт
+        local total_amount = 50 * 10^6
+        local total_players = 0
+
+        for _, count in pairs(rank_counts) do
+            total_players = total_players + count
+        end
+
+        local base_amount_per_player = math.floor(total_amount / total_players)
+        local remaining_amount = total_amount % total_players
+
+        local rank_amounts = {}
+        for rank, count in pairs(rank_counts) do
+            rank_amounts[rank] = base_amount_per_player * count
+        end
+
+        for rank, count in pairs(rank_counts) do
+            if remaining_amount > 0 then
+                rank_amounts[rank] = rank_amounts[rank] + 1
+                remaining_amount = remaining_amount - count
+            end
+            if remaining_amount <= 0 then
+                break
+            end
+        end
+
+        -- Вывод распределения вирт
+        for rank, amount in pairs(rank_amounts) do
+            local amount_per_player = math.floor(amount / rank_counts[rank])
+            print(rank .. " ранг: каждому игроку " .. amount_per_player .. " вирт")
+        end
+
+
+		sampAddChatMessage('[Justice Helper] {ffffff}' .. output, message_color)
+		
         end
         return false
     end
@@ -3562,255 +3649,477 @@ imgui.OnFrame(
 				imgui.EndTabItem()
 			end
 			if imgui.BeginTabItem(fa.STAR .. u8' Розыск и штрафы') then 
-				imgui.BeginChild('##smartuk', imgui.ImVec2(292 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true)
-				imgui.CenterText(fa.STAR .. u8' Система умного розыска')
-				imgui.Separator()
-				imgui.SetCursorPosY(135 * MONET_DPI_SCALE)
-				imgui.SetCursorPosX(105 * MONET_DPI_SCALE)
-				if imgui.Button(fa.DOWNLOAD .. u8' Загрузить ##smartuk') then
-					if getARZServerNumber() ~= 0 then
-						download_smartuk = true
-						downloadFileFromUrlToPath('https://raw.githubusercontent.com/MTGMODS/justice-helper/main/SmartUK/' .. getARZServerNumber() .. '/SmartUK.json', path_uk)
-						imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartuk')
-					else
-						imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##nocloudsmartuk')
-					end
-		 		end
-				if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##nocloudsmartuk', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
-					imgui.CenterText(u8'В базе данных ещё нету умного розыска для вашего сервера!')
+				if imgui.BeginChild('##smartuk', imgui.ImVec2(292 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true) then
+					imgui.CenterText(fa.STAR .. u8' Система умного розыска')
 					imgui.Separator()
-					imgui.CenterText(u8'Вы можете вручную заполнить его по кнопке "Отредактировать"')
-					imgui.CenterText(u8'Затем вы сможете поделиться им на нашем Discord и он будет загружен в базу данных')
-					imgui.CenterText(u8'Вам надо будет скинуть файл SmartUK.json , который находиться по пути:')
-					imgui.CenterText(u8(path_uk))
-					imgui.Separator()
-					if imgui.Button(fa.CIRCLE_XMARK .. u8' Хорошо', imgui.ImVec2(550 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
-						imgui.CloseCurrentPopup()
+					imgui.SetCursorPosY(135 * MONET_DPI_SCALE)
+					imgui.SetCursorPosX(105 * MONET_DPI_SCALE)
+					if imgui.Button(fa.DOWNLOAD .. u8' Загрузить ##smartuk') then
+						if getARZServerNumber() ~= 0 then
+							download_smartuk = true
+							downloadFileFromUrlToPath('https://raw.githubusercontent.com/MTGMODS/justice-helper/main/SmartUK/' .. getARZServerNumber() .. '/SmartUK.json', path_uk)
+							imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartuk')
+						else
+							imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##nocloudsmartuk')
+						end
 					end
-					imgui.EndPopup()
-				end
-				if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartuk', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
-					if download_smartuk then
-						imgui.CenterText(u8'Если вы видите это окно значит идёт скачивание умного розыска для ' .. getARZServerNumber() .. u8' сервера!')
-						imgui.CenterText(u8'После заверешения загрузки это окно пропадёт и вы увидите сообщение в чате!')
+					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##nocloudsmartuk', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
+						imgui.CenterText(u8'В базе данных ещё нету умного розыска для вашего сервера!')
 						imgui.Separator()
-						imgui.CenterText(u8'Если же ничего не происходит, значит произошла ошибка скачивания SmartUK.json')
-						imgui.CenterText(u8'Возможно в базе данных нету файла именно для вашего сервера!')
-						imgui.Separator()
-						imgui.CenterText(u8'В этом случае вы можете вручную заполнить его по кнопке "Отредактировать"')
+						imgui.CenterText(u8'Вы можете вручную заполнить его по кнопке "Отредактировать"')
 						imgui.CenterText(u8'Затем вы сможете поделиться им на нашем Discord и он будет загружен в базу данных')
 						imgui.CenterText(u8'Вам надо будет скинуть файл SmartUK.json , который находиться по пути:')
 						imgui.CenterText(u8(path_uk))
 						imgui.Separator()
-					else
-						imgui.CloseCurrentPopup()
-					end
-					if imgui.Button(fa.CIRCLE_INFO .. u8' Хорошо', imgui.ImVec2(550 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
-						imgui.CloseCurrentPopup()
-					end
-					imgui.EndPopup()
-				end
-				imgui.SetCursorPosX(80 * MONET_DPI_SCALE)
-				if imgui.Button(fa.PEN_TO_SQUARE .. u8' Отредактировать ##smartuk') then
-					imgui.OpenPopup(fa.STAR .. u8' Система умного розыска##smartuk')
-		 		end
-				imgui.CenterText(u8('Использование: /sum [ID игрока]'))
-				if imgui.BeginPopupModal(fa.STAR .. u8' Система умного розыска##smartuk', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize ) then
-					imgui.BeginChild('##smartukedit', imgui.ImVec2(589 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true)
-					for chapter_index, chapter in ipairs(smart_uk) do
-						imgui.Columns(2)
-						imgui.BulletText(u8(chapter.name))
-						imgui.SetColumnWidth(-1, 515 * MONET_DPI_SCALE)
-						imgui.NextColumn()
-						if imgui.Button(fa.PEN_TO_SQUARE .. '##' .. chapter_index) then
-							imgui.OpenPopup(u8(chapter.name).. '##' .. chapter_index)
-						end
-						imgui.SameLine()
-						if imgui.Button(fa.TRASH_CAN .. '##' .. chapter_index) then
-							imgui.OpenPopup(fa.TRIANGLE_EXCLAMATION .. u8' Justice_Helper - Предупреждение ##' .. chapter_index)
-						end
-						if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8' Justice_Helper - Предупреждение ##' .. chapter_index, _, imgui.WindowFlags.NoResize ) then
-							imgui.CenterText(u8'Вы действительно хотите удалить пункт?')
-							imgui.CenterText(u8(chapter.name))
-							imgui.Separator()
-							if imgui.Button(fa.CIRCLE_XMARK .. u8' Нет, отменить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
-								imgui.CloseCurrentPopup()
-							end
-							imgui.SameLine()
-							if imgui.Button(fa.TRASH_CAN .. u8' Да, удалить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
-								table.remove(smart_uk, chapter_index)
-								imgui.CloseCurrentPopup()
-							end
-							imgui.End()
-						end
-						imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
-						imgui.Columns(1)
-						if imgui.BeginPopupModal(u8(chapter.name) .. '##' .. chapter_index, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
-							if imgui.BeginChild('##smartukedititem', imgui.ImVec2(589 * MONET_DPI_SCALE, 390 * MONET_DPI_SCALE), true) then
-								if chapter.item then
-									for index, item in ipairs(chapter.item) do
-										imgui.Columns(2)
-										imgui.BulletText(u8(item.text))
-										imgui.SetColumnWidth(-1, 520 * MONET_DPI_SCALE)
-										imgui.NextColumn()
-										if imgui.Button(fa.PEN_TO_SQUARE .. '##' .. chapter_index .. '##' .. index) then
-											input_smartuk_text = imgui.new.char[256](u8(item.text))
-											input_smartuk_lvl = imgui.new.char[256](u8(item.lvl))
-											input_smartuk_reason = imgui.new.char[256](u8(item.reason))
-											imgui.OpenPopup(fa.PEN_TO_SQUARE .. u8(" Редактирование подпункта##") .. chapter.name .. index .. chapter_index)
-										end
-										if imgui.BeginPopupModal(fa.PEN_TO_SQUARE .. u8(" Редактирование подпункта##") .. chapter.name .. index .. chapter_index, _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
-											if imgui.BeginChild('##smartukedititeminput', imgui.ImVec2(489 * MONET_DPI_SCALE, 155 * MONET_DPI_SCALE), true) then	
-												imgui.CenterText(u8'Название подпункта:')
-												imgui.PushItemWidth(478 * MONET_DPI_SCALE)
-												imgui.InputText(u8'##input_smartuk_text', input_smartuk_text, 256)
-												imgui.CenterText(u8'Уровень розыска для выдачи (от 1 до 6):')
-												imgui.PushItemWidth(478 * MONET_DPI_SCALE)
-												imgui.InputText(u8'##input_smartuk_lvl', input_smartuk_lvl, 256)
-												imgui.CenterText(u8'Причина для выдачи розыска:')
-												imgui.PushItemWidth(478 * MONET_DPI_SCALE)
-												imgui.InputText(u8'##input_smartuk_reason', input_smartuk_reason, 256)
-												imgui.EndChild()
-											end	
-											if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
-												imgui.CloseCurrentPopup()
-											end
-											imgui.SameLine()
-											if imgui.Button(fa.FLOPPY_DISK .. u8' Сохранить', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
-												item.text = u8:decode(ffi.string(input_smartuk_text))
-												item.lvl = u8:decode(ffi.string(input_smartuk_lvl))
-												item.reason = u8:decode(ffi.string(input_smartuk_reason))
-												save_settings()
-												imgui.CloseCurrentPopup()
-											end
-											imgui.EndPopup()
-										end
-										imgui.SameLine()
-										if imgui.Button(fa.TRASH_CAN .. '##' .. chapter_index .. '##' .. index) then
-											imgui.OpenPopup(fa.TRIANGLE_EXCLAMATION .. u8' Justice_Helper - Предупреждение ##' .. chapter_index .. '##' .. index)
-										end
-										if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8' Justice_Helper - Предупреждение ##' .. chapter_index .. '##' .. index, _, imgui.WindowFlags.NoResize ) then
-											imgui.CenterText(u8'Вы действительно хотите удалить подпункт?')
-											imgui.CenterText(u8(item.text))
-											imgui.Separator()
-											if imgui.Button(fa.CIRCLE_XMARK .. u8' Нет, отменить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
-												imgui.CloseCurrentPopup()
-											end
-											imgui.SameLine()
-											if imgui.Button(fa.TRASH_CAN .. u8' Да, удалить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
-												table.remove(chapter.item, index)
-												imgui.CloseCurrentPopup()
-											end
-											imgui.End()
-										end
-										imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
-										imgui.Columns(1)
-										imgui.Separator()
-									end
-								end
-								imgui.EndChild()
-							end
-							if imgui.Button(fa.CIRCLE_PLUS .. u8' Добавить новый подпункт', imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
-								input_smartuk_text = imgui.new.char[256](u8(''))
-								input_smartuk_lvl = imgui.new.char[256](u8(''))
-								input_smartuk_reason = imgui.new.char[256](u8(''))
-								imgui.OpenPopup(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта'))
-							end
-							if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта'), _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
-								if imgui.BeginChild('##smartukedititeminput', imgui.ImVec2(489 * MONET_DPI_SCALE, 155 * MONET_DPI_SCALE), true) then	
-									imgui.CenterText(u8'Название подпункта:')
-									imgui.PushItemWidth(478 * MONET_DPI_SCALE)
-									imgui.InputText(u8'##input_smartuk_text', input_smartuk_text, 256)
-									imgui.CenterText(u8'Уровень розыска для выдачи (от 1 до 6):')
-									imgui.PushItemWidth(478 * MONET_DPI_SCALE)
-									imgui.InputText(u8'##input_smartuk_lvl', input_smartuk_lvl, 256)
-									imgui.CenterText(u8'Причина для выдачи розыска:')
-									imgui.PushItemWidth(478 * MONET_DPI_SCALE)
-									imgui.InputText(u8'##input_smartuk_reason', input_smartuk_reason, 256)
-									imgui.EndChild()
-								end	
-								if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
-									imgui.CloseCurrentPopup()
-								end
-								imgui.SameLine()
-								if imgui.Button(fa.FLOPPY_DISK .. u8' Сохранить', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
-									local text = u8:decode(ffi.string(input_smartuk_text))
-									local lvl = u8:decode(ffi.string(input_smartuk_lvl))
-									local reason = u8:decode(ffi.string(input_smartuk_reason))
-									if lvl ~= '' and tonumber(lvl) >= 1 and tonumber(lvl) <= 6 and text ~= '' and reason ~= '' then
-										local temp = { text = text, lvl = lvl, reason = reason }
-										table.insert(chapter.item, temp)
-										save_settings()
-										imgui.CloseCurrentPopup()
-									else
-										sampAddChatMessage('[Justice Helper] {ffffff}Ошибка в указанных данных, исправьте!', message_color)
-									end
-								end
-								imgui.EndPopup()
-							end
-							imgui.SameLine()
-							if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
-								imgui.CloseCurrentPopup()
-							end
-							imgui.EndPopup()
-						end
-						imgui.Separator()
-					end
-					imgui.EndChild()
-					if imgui.Button(fa.CIRCLE_XMARK .. u8' Добавить пункт', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
-						input_smartuk_name = imgui.new.char[256](u8(''))
-						imgui.OpenPopup(fa.CIRCLE_PLUS .. u8' Добавление нового пункта')
-					end
-					if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8' Добавление нового пункта', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
-						imgui.CenterText(u8('Введите название/номер пункта и нажмите "Сохранить"'))
-						imgui.PushItemWidth(500 * MONET_DPI_SCALE)
-						imgui.InputText(u8'##input_smartuk_name', input_smartuk_name, 256)
-						imgui.CenterText(u8'Обратите внимание, вы не сможете изменить его в дальнейшем!')
-						if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
-							imgui.CloseCurrentPopup()
-						end
-						imgui.SameLine()
-						if imgui.Button(fa.CIRCLE_PLUS .. u8' Добавить', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
-							local temp = u8:decode(ffi.string(input_smartuk_name))
-							local new_chapter = { name = temp, item = {} }
-							table.insert(smart_uk, new_chapter)
-							save_settings()
+						if imgui.Button(fa.CIRCLE_XMARK .. u8' Хорошо', imgui.ImVec2(550 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
 							imgui.CloseCurrentPopup()
 						end
 						imgui.EndPopup()
 					end
-					imgui.SameLine()
-					if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
-						imgui.CloseCurrentPopup()
+					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartuk', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
+						if download_smartuk then
+							imgui.CenterText(u8'Если вы видите это окно значит идёт скачивание умного розыска для ' .. getARZServerNumber() .. u8' сервера!')
+							imgui.CenterText(u8'После заверешения загрузки это окно пропадёт и вы увидите сообщение в чате!')
+							imgui.Separator()
+							imgui.CenterText(u8'Если же ничего не происходит, значит произошла ошибка скачивания SmartUK.json')
+							imgui.CenterText(u8'Возможно в базе данных нету файла именно для вашего сервера!')
+							imgui.Separator()
+							imgui.CenterText(u8'В этом случае вы можете вручную заполнить его по кнопке "Отредактировать"')
+							imgui.CenterText(u8'Затем вы сможете поделиться им на нашем Discord и он будет загружен в базу данных')
+							imgui.CenterText(u8'Вам надо будет скинуть файл SmartUK.json , который находиться по пути:')
+							imgui.CenterText(u8(path_uk))
+							imgui.Separator()
+						else
+							imgui.CloseCurrentPopup()
+						end
+						if imgui.Button(fa.CIRCLE_INFO .. u8' Хорошо', imgui.ImVec2(550 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+							imgui.CloseCurrentPopup()
+						end
+						imgui.EndPopup()
 					end
-					imgui.EndPopup()
+					imgui.SetCursorPosX(80 * MONET_DPI_SCALE)
+					if imgui.Button(fa.PEN_TO_SQUARE .. u8' Отредактировать ##smartuk') then
+						imgui.OpenPopup(fa.STAR .. u8' Система умного розыска##smartuk')
+					end
+					imgui.CenterText(u8('Использование: /sum [ID игрока]'))
+					if imgui.BeginPopupModal(fa.STAR .. u8' Система умного розыска##smartuk', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize ) then
+						imgui.BeginChild('##smartukedit', imgui.ImVec2(589 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true)
+						for chapter_index, chapter in ipairs(smart_uk) do
+							imgui.Columns(2)
+							imgui.BulletText(u8(chapter.name))
+							imgui.SetColumnWidth(-1, 515 * MONET_DPI_SCALE)
+							imgui.NextColumn()
+							if imgui.Button(fa.PEN_TO_SQUARE .. '##' .. chapter_index) then
+								imgui.OpenPopup(u8(chapter.name).. '##' .. chapter_index)
+							end
+							imgui.SameLine()
+							if imgui.Button(fa.TRASH_CAN .. '##' .. chapter_index) then
+								imgui.OpenPopup(fa.TRIANGLE_EXCLAMATION .. u8' Justice_Helper - Предупреждение ##' .. chapter_index)
+							end
+							if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8' Justice_Helper - Предупреждение ##' .. chapter_index, _, imgui.WindowFlags.NoResize ) then
+								imgui.CenterText(u8'Вы действительно хотите удалить пункт?')
+								imgui.CenterText(u8(chapter.name))
+								imgui.Separator()
+								if imgui.Button(fa.CIRCLE_XMARK .. u8' Нет, отменить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+									imgui.CloseCurrentPopup()
+								end
+								imgui.SameLine()
+								if imgui.Button(fa.TRASH_CAN .. u8' Да, удалить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+									table.remove(smart_uk, chapter_index)
+									save_smart_uk()
+									imgui.CloseCurrentPopup()
+								end
+								imgui.End()
+							end
+							imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+							imgui.Columns(1)
+							if imgui.BeginPopupModal(u8(chapter.name) .. '##' .. chapter_index, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
+								if imgui.BeginChild('##smartukedititem', imgui.ImVec2(589 * MONET_DPI_SCALE, 390 * MONET_DPI_SCALE), true) then
+									if chapter.item then
+										for index, item in ipairs(chapter.item) do
+											imgui.Columns(2)
+											imgui.BulletText(u8(item.text))
+											imgui.SetColumnWidth(-1, 515 * MONET_DPI_SCALE)
+											imgui.NextColumn()
+											if imgui.Button(fa.PEN_TO_SQUARE .. '##' .. chapter_index .. '##' .. index) then
+												input_smartuk_text = imgui.new.char[256](u8(item.text))
+												input_smartuk_lvl = imgui.new.char[256](u8(item.lvl))
+												input_smartuk_reason = imgui.new.char[256](u8(item.reason))
+												imgui.OpenPopup(fa.PEN_TO_SQUARE .. u8(" Редактирование подпункта##") .. chapter.name .. index .. chapter_index)
+											end
+											if imgui.BeginPopupModal(fa.PEN_TO_SQUARE .. u8(" Редактирование подпункта##") .. chapter.name .. index .. chapter_index, _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
+												if imgui.BeginChild('##smartukedititeminput', imgui.ImVec2(489 * MONET_DPI_SCALE, 155 * MONET_DPI_SCALE), true) then	
+													imgui.CenterText(u8'Название подпункта:')
+													imgui.PushItemWidth(478 * MONET_DPI_SCALE)
+													imgui.InputText(u8'##input_smartuk_text', input_smartuk_text, 256)
+													imgui.CenterText(u8'Уровень розыска для выдачи (от 1 до 6):')
+													imgui.PushItemWidth(478 * MONET_DPI_SCALE)
+													imgui.InputText(u8'##input_smartuk_lvl', input_smartuk_lvl, 256)
+													imgui.CenterText(u8'Причина для выдачи розыска:')
+													imgui.PushItemWidth(478 * MONET_DPI_SCALE)
+													imgui.InputText(u8'##input_smartuk_reason', input_smartuk_reason, 256)
+													imgui.EndChild()
+												end	
+												if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+													imgui.CloseCurrentPopup()
+												end
+												imgui.SameLine()
+												if imgui.Button(fa.FLOPPY_DISK .. u8' Сохранить', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+													if u8:decode(ffi.string(input_smartuk_lvl)) ~= '' and not u8:decode(ffi.string(input_smartuk_lvl)):find('%D') and tonumber(u8:decode(ffi.string(input_smartuk_lvl))) >= 1 and tonumber(u8:decode(ffi.string(input_smartuk_lvl))) <= 6 and u8:decode(ffi.string(input_smartuk_text)) ~= '' and u8:decode(ffi.string(input_smartuk_reason)) ~= '' then
+														item.text = u8:decode(ffi.string(input_smartuk_text))
+														item.lvl = u8:decode(ffi.string(input_smartuk_lvl))
+														item.reason = u8:decode(ffi.string(input_smartuk_reason))
+														save_smart_uk()
+														imgui.CloseCurrentPopup()
+													else
+														sampAddChatMessage('[Justice Helper] {ffffff}Ошибка в указанных данных, исправьте!', message_color)
+													end
+												end
+												imgui.EndPopup()
+											end
+											imgui.SameLine()
+											if imgui.Button(fa.TRASH_CAN .. '##' .. chapter_index .. '##' .. index) then
+												imgui.OpenPopup(fa.TRIANGLE_EXCLAMATION .. u8' Justice_Helper - Предупреждение ##' .. chapter_index .. '##' .. index)
+											end
+											if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8' Justice_Helper - Предупреждение ##' .. chapter_index .. '##' .. index, _, imgui.WindowFlags.NoResize ) then
+												imgui.CenterText(u8'Вы действительно хотите удалить подпункт?')
+												imgui.CenterText(u8(item.text))
+												imgui.Separator()
+												if imgui.Button(fa.CIRCLE_XMARK .. u8' Нет, отменить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+													imgui.CloseCurrentPopup()
+												end
+												imgui.SameLine()
+												if imgui.Button(fa.TRASH_CAN .. u8' Да, удалить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+													table.remove(chapter.item, index)
+													save_smart_uk()
+													imgui.CloseCurrentPopup()
+												end
+												imgui.End()
+											end
+											imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+											imgui.Columns(1)
+											imgui.Separator()
+										end
+									end
+									imgui.EndChild()
+								end
+								if imgui.Button(fa.CIRCLE_PLUS .. u8' Добавить новый подпункт', imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
+									input_smartuk_text = imgui.new.char[256](u8(''))
+									input_smartuk_lvl = imgui.new.char[256](u8(''))
+									input_smartuk_reason = imgui.new.char[256](u8(''))
+									imgui.OpenPopup(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта'))
+								end
+								if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта'), _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
+									if imgui.BeginChild('##smartukedititeminput', imgui.ImVec2(489 * MONET_DPI_SCALE, 155 * MONET_DPI_SCALE), true) then	
+										imgui.CenterText(u8'Название подпункта:')
+										imgui.PushItemWidth(478 * MONET_DPI_SCALE)
+										imgui.InputText(u8'##input_smartuk_text', input_smartuk_text, 256)
+										imgui.CenterText(u8'Уровень розыска для выдачи (от 1 до 6):')
+										imgui.PushItemWidth(478 * MONET_DPI_SCALE)
+										imgui.InputText(u8'##input_smartuk_lvl', input_smartuk_lvl, 256)
+										imgui.CenterText(u8'Причина для выдачи розыска:')
+										imgui.PushItemWidth(478 * MONET_DPI_SCALE)
+										imgui.InputText(u8'##input_smartuk_reason', input_smartuk_reason, 256)
+										imgui.EndChild()
+									end	
+									if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+										imgui.CloseCurrentPopup()
+									end
+									imgui.SameLine()
+									if imgui.Button(fa.FLOPPY_DISK .. u8' Сохранить', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+										local text = u8:decode(ffi.string(input_smartuk_text))
+										local lvl = u8:decode(ffi.string(input_smartuk_lvl))
+										local reason = u8:decode(ffi.string(input_smartuk_reason))
+										if lvl ~= '' and not tostring(lvl):find('%D') and tonumber(lvl) >= 1 and tonumber(lvl) <= 6 and text ~= '' and reason ~= '' then
+											local temp = { text = text, lvl = lvl, reason = reason }
+											table.insert(chapter.item, temp)
+											save_smart_uk()
+											imgui.CloseCurrentPopup()
+										else
+											sampAddChatMessage('[Justice Helper] {ffffff}Ошибка в указанных данных, исправьте!', message_color)
+										end
+									end
+									imgui.EndPopup()
+								end
+								imgui.SameLine()
+								if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
+									imgui.CloseCurrentPopup()
+								end
+								imgui.EndPopup()
+							end
+							imgui.Separator()
+						end
+						imgui.EndChild()
+						if imgui.Button(fa.CIRCLE_XMARK .. u8' Добавить пункт', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+							input_smartuk_name = imgui.new.char[256](u8(''))
+							imgui.OpenPopup(fa.CIRCLE_PLUS .. u8' Добавление нового пункта')
+						end
+						if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8' Добавление нового пункта', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
+							imgui.CenterText(u8('Введите название/номер пункта и нажмите "Сохранить"'))
+							imgui.PushItemWidth(500 * MONET_DPI_SCALE)
+							imgui.InputText(u8'##input_smartuk_name', input_smartuk_name, 256)
+							imgui.CenterText(u8'Обратите внимание, вы не сможете изменить его в дальнейшем!')
+							if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+								imgui.CloseCurrentPopup()
+							end
+							imgui.SameLine()
+							if imgui.Button(fa.CIRCLE_PLUS .. u8' Добавить', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+								local temp = u8:decode(ffi.string(input_smartuk_name))
+								local new_chapter = { name = temp, item = {} }
+								table.insert(smart_uk, new_chapter)
+								save_smart_uk()
+								imgui.CloseCurrentPopup()
+							end
+							imgui.EndPopup()
+						end
+						imgui.SameLine()
+						if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+							imgui.CloseCurrentPopup()
+						end
+						imgui.EndPopup()
+					end
+					imgui.SetCursorPosY(310 * MONET_DPI_SCALE)
+					imgui.Separator()
+					imgui.CenterText(u8'Предложения по изменению облачного УК:')
+					imgui.CenterText(u8'Отправляйте на Discord или BlastHack')
+					imgui.EndChild()
 				end
-				imgui.SetCursorPosY(310 * MONET_DPI_SCALE)
-				imgui.Separator()
-				imgui.CenterText(u8'Предложения по изменению облачного УК:')
-				imgui.CenterText(u8'Отправляйте на Discord или BlastHack')
-
-				imgui.EndChild()
 				imgui.SameLine()
-				imgui.BeginChild('##smartpdd', imgui.ImVec2(292 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true)
-				imgui.CenterText(fa.TICKET .. u8' Система умного штрафа')
-				imgui.Separator()
-				imgui.SetCursorPosY(135 * MONET_DPI_SCALE)
-				imgui.SetCursorPosX(105 * MONET_DPI_SCALE)
-				if imgui.Button(fa.DOWNLOAD .. u8' Загрузить ##smartpdd') then
-					
-		 		end
-				imgui.SetCursorPosX(80 * MONET_DPI_SCALE)
-				if imgui.Button(fa.PEN_TO_SQUARE .. u8' Отредактировать ##smartpdd') then
-					
-		 		end
-				imgui.CenterText(u8('Использование: /tsm [ID игрока]'))
-				imgui.SetCursorPosY(310 * MONET_DPI_SCALE)
-				imgui.Separator()
-				imgui.CenterText(u8'Предложения по изменению облачного ПДД:')
-				imgui.CenterText(u8'Отправляйте на Discord или BlastHack')
-				imgui.EndChild()
-
+				if imgui.BeginChild('##smartpdd', imgui.ImVec2(292 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true) then
+					imgui.CenterText(fa.TICKET .. u8' Система умного штрафа')
+					imgui.Separator()
+					imgui.SetCursorPosY(135 * MONET_DPI_SCALE)
+					imgui.SetCursorPosX(105 * MONET_DPI_SCALE)
+					if imgui.Button(fa.DOWNLOAD .. u8' Загрузить ##smartpdd') then
+						if getARZServerNumber() ~= 0 then
+							download_smartpdd = true
+							downloadFileFromUrlToPath('https://raw.githubusercontent.com/MTGMODS/justice-helper/main/SmartPDD/' .. getARZServerNumber() .. '/SmartPDD.json', path_pdd)
+							imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartpdd')
+						else
+							imgui.OpenPopup(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##nocloudsmartpdd')
+						end
+					end
+					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##nocloudsmartpdd', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
+						imgui.CenterText(u8'В базе данных ещё нету умных штрафов для вашего сервера!')
+						imgui.Separator()
+						imgui.CenterText(u8'Вы можете вручную заполнить его по кнопке "Отредактировать"')
+						imgui.CenterText(u8'Затем вы сможете поделиться им на нашем Discord и он будет загружен в базу данных')
+						imgui.CenterText(u8'Вам надо будет скинуть файл SmartPDD.json , который находиться по пути:')
+						imgui.CenterText(u8(path_pdd))
+						imgui.Separator()
+						if imgui.Button(fa.CIRCLE_XMARK .. u8' Хорошо', imgui.ImVec2(550 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+							imgui.CloseCurrentPopup()
+						end
+						imgui.EndPopup()
+					end
+					if imgui.BeginPopupModal(fa.CIRCLE_INFO .. u8' Justice Helper - Оповещение##donwloadsmartpdd', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
+						if download_smartpdd then
+							imgui.CenterText(u8'Если вы видите это окно значит идёт скачивание умных штрафов для ' .. getARZServerNumber() .. u8' сервера!')
+							imgui.CenterText(u8'После заверешения загрузки это окно пропадёт и вы увидите сообщение в чате!')
+							imgui.Separator()
+							imgui.CenterText(u8'Если же ничего не происходит, значит произошла ошибка скачивания SmartPDD.json')
+							imgui.CenterText(u8'Возможно в базе данных нету файла именно для вашего сервера!')
+							imgui.Separator()
+							imgui.CenterText(u8'В этом случае вы можете вручную заполнить его по кнопке "Отредактировать"')
+							imgui.CenterText(u8'Затем вы сможете поделиться им на нашем Discord и он будет загружен в базу данных')
+							imgui.CenterText(u8'Вам надо будет скинуть файл SmartPDD.json , который находиться по пути:')
+							imgui.CenterText(u8(path_pdd))
+							imgui.Separator()
+						else
+							imgui.CloseCurrentPopup()
+						end
+						if imgui.Button(fa.CIRCLE_INFO .. u8' Хорошо', imgui.ImVec2(550 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+							imgui.CloseCurrentPopup()
+						end
+						imgui.EndPopup()
+					end
+					imgui.SetCursorPosX(80 * MONET_DPI_SCALE)
+					if imgui.Button(fa.PEN_TO_SQUARE .. u8' Отредактировать ##smartpdd') then
+						imgui.OpenPopup(fa.TICKET .. u8' Система умных штрафов##smartpdd')
+					end
+					if imgui.BeginPopupModal(fa.TICKET .. u8' Система умных штрафов##smartpdd', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize ) then
+						imgui.BeginChild('##smartpddedit', imgui.ImVec2(589 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true)
+						for chapter_index, chapter in ipairs(smart_pdd) do
+							imgui.Columns(2)
+							imgui.BulletText(u8(chapter.name))
+							imgui.SetColumnWidth(-1, 515 * MONET_DPI_SCALE)
+							imgui.NextColumn()
+							if imgui.Button(fa.PEN_TO_SQUARE .. '##smartpdd' .. chapter_index) then
+								imgui.OpenPopup(u8(chapter.name).. '##smartpdd' .. chapter_index)
+							end
+							imgui.SameLine()
+							if imgui.Button(fa.TRASH_CAN .. '##smartpdd' .. chapter_index) then
+								imgui.OpenPopup(fa.TRIANGLE_EXCLAMATION .. u8' Justice_Helper - Предупреждение ##smartpdd' .. chapter_index)
+							end
+							if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8' Justice_Helper - Предупреждение ##smartpdd' .. chapter_index, _, imgui.WindowFlags.NoResize ) then
+								imgui.CenterText(u8'Вы действительно хотите удалить пункт?')
+								imgui.CenterText(u8(chapter.name))
+								imgui.Separator()
+								if imgui.Button(fa.CIRCLE_XMARK .. u8' Нет, отменить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+									imgui.CloseCurrentPopup()
+								end
+								imgui.SameLine()
+								if imgui.Button(fa.TRASH_CAN .. u8' Да, удалить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+									table.remove(smart_pdd, chapter_index)
+									save_smart_pdd()
+									imgui.CloseCurrentPopup()
+								end
+								imgui.End()
+							end
+							imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+							imgui.Columns(1)
+							if imgui.BeginPopupModal(u8(chapter.name).. '##smartpdd' .. chapter_index, _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
+								if imgui.BeginChild('##smartpddedititem', imgui.ImVec2(589 * MONET_DPI_SCALE, 390 * MONET_DPI_SCALE), true) then
+									if chapter.item then
+										for index, item in ipairs(chapter.item) do
+											imgui.Columns(2)
+											imgui.BulletText(u8(item.text))
+											imgui.SetColumnWidth(-1, 515 * MONET_DPI_SCALE)
+											imgui.NextColumn()
+											if imgui.Button(fa.PEN_TO_SQUARE .. '##' .. chapter_index .. '##smartpdd' .. index) then
+												input_smartpdd_text = imgui.new.char[256](u8(item.text))
+												input_smartpdd_amount = imgui.new.char[256](u8(item.amount))
+												input_smartpdd_reason = imgui.new.char[256](u8(item.reason))
+												imgui.OpenPopup(fa.PEN_TO_SQUARE .. u8(" Редактирование подпункта##smartpdd") .. chapter.name .. index .. chapter_index)
+											end
+											if imgui.BeginPopupModal(fa.PEN_TO_SQUARE .. u8(" Редактирование подпункта##smartpdd") .. chapter.name .. index .. chapter_index, _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
+												if imgui.BeginChild('##smartpddedititeminput', imgui.ImVec2(489 * MONET_DPI_SCALE, 155 * MONET_DPI_SCALE), true) then	
+													imgui.CenterText(u8'Название подпункта:')
+													imgui.PushItemWidth(478 * MONET_DPI_SCALE)
+													imgui.InputText(u8'##input_smartpdd_text', input_smartpdd_text, 256)
+													imgui.CenterText(u8'Сумма штрафа (цифры без каких либо символов):')
+													imgui.PushItemWidth(478 * MONET_DPI_SCALE)
+													imgui.InputText(u8'##input_smartpdd_amount', input_smartpdd_amount, 256)
+													imgui.CenterText(u8'Причина для выдачи штрафа:')
+													imgui.PushItemWidth(478 * MONET_DPI_SCALE)
+													imgui.InputText(u8'##input_smartpdd_reason', input_smartpdd_reason, 256)
+													imgui.EndChild()
+												end	
+												if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+													imgui.CloseCurrentPopup()
+												end
+												imgui.SameLine()
+												if imgui.Button(fa.FLOPPY_DISK .. u8' Сохранить', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+													if u8:decode(ffi.string(input_smartpdd_amount)) ~= ''and u8:decode(ffi.string(input_smartpdd_text)) ~= '' and u8:decode(ffi.string(input_smartpdd_reason)) ~= '' and u8:decode(ffi.string(input_smartpdd_amount)):find('%d') and not u8:decode(ffi.string(input_smartpdd_amount)):find('%D') then
+														item.text = u8:decode(ffi.string(input_smartpdd_text))
+														item.amount = u8:decode(ffi.string(input_smartpdd_amount))
+														item.reason = u8:decode(ffi.string(input_smartpdd_reason))
+														save_smart_pdd()
+														imgui.CloseCurrentPopup()
+													else
+														sampAddChatMessage('[Justice Helper] {ffffff}Ошибка в указанных данных, исправьте!', message_color)
+													end
+												end
+												imgui.EndPopup()
+											end
+											imgui.SameLine()
+											if imgui.Button(fa.TRASH_CAN .. '##' .. chapter_index .. '###smartpdd' .. index) then
+												imgui.OpenPopup(fa.TRIANGLE_EXCLAMATION .. u8' Justice_Helper - Предупреждение ##smartpdd' .. chapter_index .. '##' .. index)
+											end
+											if imgui.BeginPopupModal(fa.TRIANGLE_EXCLAMATION .. u8' Justice_Helper - Предупреждение ##smartpdd' .. chapter_index .. '##' .. index, _, imgui.WindowFlags.NoResize ) then
+												imgui.CenterText(u8'Вы действительно хотите удалить подпункт?')
+												imgui.CenterText(u8(item.text))
+												imgui.Separator()
+												if imgui.Button(fa.CIRCLE_XMARK .. u8' Нет, отменить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+													imgui.CloseCurrentPopup()
+												end
+												imgui.SameLine()
+												if imgui.Button(fa.TRASH_CAN .. u8' Да, удалить', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+													table.remove(chapter.item, index)
+													save_smart_pdd()
+													imgui.CloseCurrentPopup()
+												end
+												imgui.End()
+											end
+											imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+											imgui.Columns(1)
+											imgui.Separator()
+										end
+									end
+									imgui.EndChild()
+								end
+								if imgui.Button(fa.CIRCLE_PLUS .. u8' Добавить новый подпункт##smartpdd', imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
+									input_smartpdd_text = imgui.new.char[256](u8(''))
+									input_smartpdd_amount = imgui.new.char[256](u8(''))
+									input_smartpdd_reason = imgui.new.char[256](u8(''))
+									imgui.OpenPopup(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта##smartpdd'))
+								end
+								if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8(' Добавление нового подпункта##smartpdd'), _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
+									if imgui.BeginChild('##smartpddedititeminput', imgui.ImVec2(489 * MONET_DPI_SCALE, 155 * MONET_DPI_SCALE), true) then	
+										imgui.CenterText(u8'Название подпункта:')
+										imgui.PushItemWidth(478 * MONET_DPI_SCALE)
+										imgui.InputText(u8'##input_smartpdd_text', input_smartpdd_text, 256)
+										imgui.CenterText(u8'Сумма штрафа (цифры без каких либо символов):')
+										imgui.PushItemWidth(478 * MONET_DPI_SCALE)
+										imgui.InputText(u8'##input_smartpdd_amount', input_smartpdd_amount, 256)
+										imgui.CenterText(u8'Причина для выдачи штрафа:')
+										imgui.PushItemWidth(478 * MONET_DPI_SCALE)
+										imgui.InputText(u8'##input_smartpdd_reason', input_smartpdd_reason, 256)
+										imgui.EndChild()
+									end	
+									if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+										imgui.CloseCurrentPopup()
+									end
+									imgui.SameLine()
+									if imgui.Button(fa.FLOPPY_DISK .. u8' Сохранить', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+										local text = u8:decode(ffi.string(input_smartpdd_text))
+										local amount = u8:decode(ffi.string(input_smartpdd_amount))
+										local reason = u8:decode(ffi.string(input_smartpdd_reason))
+										if amount ~= ''and text ~= '' and reason ~= '' and tostring(amount):find('%d') and not tostring(amount):find('%D') then
+											local temp = { text = text, amount = amount, reason = reason }
+											table.insert(chapter.item, temp)
+											save_smart_pdd()
+											imgui.CloseCurrentPopup()
+										else
+											sampAddChatMessage('[Justice Helper] {ffffff}Ошибка в указанных данных, исправьте!', message_color)
+										end
+									end
+									imgui.EndPopup()
+								end
+								imgui.SameLine()
+								if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
+									imgui.CloseCurrentPopup()
+								end
+								imgui.EndPopup()
+							end
+							imgui.Separator()
+						end
+						imgui.EndChild()
+						if imgui.Button(fa.CIRCLE_XMARK .. u8' Добавить пункт', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+							input_smartpdd_name = imgui.new.char[256](u8(''))
+							imgui.OpenPopup(fa.CIRCLE_PLUS .. u8' Добавление нового пункта##smartpdd')
+						end
+						if imgui.BeginPopupModal(fa.CIRCLE_PLUS .. u8' Добавление нового пункта##smartpdd', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize) then
+							imgui.CenterText(u8('Введите название/номер пункта и нажмите "Сохранить"'))
+							imgui.PushItemWidth(500 * MONET_DPI_SCALE)
+							imgui.InputText(u8'##input_smartpdd_name', input_smartpdd_name, 256)
+							imgui.CenterText(u8'Обратите внимание, вы не сможете изменить его в дальнейшем!')
+							if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+								imgui.CloseCurrentPopup()
+							end
+							imgui.SameLine()
+							if imgui.Button(fa.CIRCLE_PLUS .. u8' Добавить', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+								local temp = u8:decode(ffi.string(input_smartpdd_name))
+								local new_chapter = { name = temp, item = {} }
+								table.insert(smart_pdd, new_chapter)
+								save_smart_pdd()
+								imgui.CloseCurrentPopup()
+							end
+							imgui.EndPopup()
+						end
+						imgui.SameLine()
+						if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(imgui.GetMiddleButtonX(2), 0)) then
+							imgui.CloseCurrentPopup()
+						end
+						imgui.EndPopup()
+					end
+					imgui.CenterText(u8('Использование: /tsm [ID игрока]'))
+					imgui.SetCursorPosY(310 * MONET_DPI_SCALE)
+					imgui.Separator()
+					imgui.CenterText(u8'Предложения по изменению облачного ПДД:')
+					imgui.CenterText(u8'Отправляйте на Discord или BlastHack')
+					imgui.EndChild()
+				end
 			imgui.EndTabItem()
 			end
 			if imgui.BeginTabItem(fa.FILE_PEN..u8' Заметки') then 
@@ -3926,6 +4235,10 @@ imgui.OnFrame(
 				imgui.Text(fa.CIRCLE_USER..u8" Разработчик данного хелпера: MTG MODS")
 				imgui.Separator()
 				imgui.Text(fa.CIRCLE_INFO..u8" Версия хелпера которая сейчас установлена у вас: " .. u8(thisScript().version))
+				imgui.SameLine()
+				if imgui.SmallButton(u8'Проверить обновления') then
+					check_update()
+				end
 				imgui.Separator()
 				imgui.Text(fa.BOOK ..u8" Гайд по использованию хелпера:")
 				imgui.SameLine()
@@ -4040,6 +4353,7 @@ imgui.OnFrame(
 						os.remove(path_uk)
 						os.remove(path_pdd)
 						os.remove(path_settings)
+						
 						imgui.CloseCurrentPopup()
 						reload_script = true
 						thisScript():reload()
@@ -4064,9 +4378,9 @@ imgui.OnFrame(
 						play_error_sound()
 						os.remove(path_helper)
 						os.remove(path_settings)
-						os.remove(path)
+						os.remove(path_uk)
 						os.remove(path_pdd)
-						os.remove(path_update_info)
+						
 						thisScript():unload()
 					end
 					imgui.End()
@@ -4818,11 +5132,14 @@ imgui.OnFrame(
 		imgui.Separator()
 		if imgui.Button(fa.CIRCLE_XMARK .. u8' Не сбрасывать ',  imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
 			InformationWindow[0] = false
+			check_update()
 		end
 		imgui.SameLine()
 		if imgui.Button(fa.CIRCLE_RIGHT..u8' Сбросить настройки ',  imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
-			settings = default_settings
-			save_settings()
+			os.remove(path_uk)
+			os.remove(path_pdd)
+			os.remove(path_settings)
+			
 			sampAddChatMessage('[Justice Helper] {ffffff}Настройки хелпера успешно сброшены! Перезагрузка...', message_color)
 			reload_script = true
 			thisScript():reload()
@@ -5003,39 +5320,49 @@ imgui.OnFrame(
     end
 )
 
-
 imgui.OnFrame(
     function() return SumMenuWindow[0] end,
     function(player)
         imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
         imgui.SetNextWindowSize(imgui.ImVec2(600 * MONET_DPI_SCALE, 413 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
-        imgui.Begin(fa.HANDCUFFS .. u8" Justice Helper - Умная выдача розыска##sum_menu", SumMenuWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
+        imgui.Begin(fa.STAR .. u8" Justice Helper - Умная выдача розыска##sum_menu", SumMenuWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
         if smart_uk ~= nil and isParamSampID(player_id) then
 			imgui.SetWindowFontScale(1.4)
 			imgui.Text(fa.MAGNIFYING_GLASS .. u8' Поиск:')
 			imgui.SetWindowFontScale(1.0)
 			imgui.SameLine()
-			imgui.PushItemWidth(495 * MONET_DPI_SCALE)
-			imgui.InputText(u8'##name_surname', input_sum, 128) 
-			--u8:decode(ffi.string(input_sum))
+			imgui.PushItemWidth(467 * MONET_DPI_SCALE)
+			imgui.InputText(u8'##input_sum', input_sum, 128) 
+			imgui.SameLine()
+			if imgui.Button(fa.GEAR) then
+				imgui.OpenPopup(fa.STAR .. u8(' Настройка выдачи розыска'))
+			end
+			if imgui.BeginPopupModal(fa.STAR .. u8(' Настройка выдачи розыска'), _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  ) then
+				if imgui.Checkbox(u8' Запрашивать выдачу розыска в /r (если ваш ранг недостаточен)', checkbox_sum) then
+					settings.general.use_form_su = checkbox_sum[0]
+					save_settings()
+				end
+				if imgui.Button(fa.CIRCLE_XMARK .. u8(' Закрыть'), imgui.ImVec2(imgui.GetMiddleButtonX(1), 25 * MONET_DPI_SCALE)) then
+					imgui.CloseCurrentPopup()
+				end
+				imgui.EndPopup()
+			end
 			imgui.Separator()
 			if u8:decode(ffi.string(input_sum)) == '' then
 				for _, chapter in ipairs(smart_uk) do
 					if imgui.CollapsingHeader(u8(chapter.name)) then
 						if chapter.item then 
 							for _, item in ipairs(chapter.item) do
-								local popup_id = fa.USER_DOCTOR .. u8' Проверка##' .. item.text .. item.lvl .. item.reason
+								local popup_id = fa.TRIANGLE_EXCLAMATION .. u8' Перепроверьте данные перед выдачей розыска##' .. item.text .. item.lvl .. item.reason
 								-- imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1.00, 1.00, 1.00, 0.65))
 								if imgui.Button(u8(item.text)..'##' .. item.text .. item.lvl .. item.reason, imgui.ImVec2( imgui.GetMiddleButtonX(1), 25 * MONET_DPI_SCALE)) then
 									imgui.OpenPopup(popup_id)
 								end 
 								-- imgui.PopStyleColor()
 								if imgui.BeginPopupModal(popup_id, nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
-									imgui.CenterText(u8'Перепроверьте данные перед выдачей розыска!')
-									imgui.Separator()
-									imgui.Text(u8'Игрок: ' .. u8(sampGetPlayerNickname(player_id)) .. ' [' .. player_id .. ']')
-									imgui.Text(u8'Уровень розыска: ' .. item.lvl)
-									imgui.Text(u8'Причина выдачи розыска: ' .. u8(item.reason))
+									imgui.Text(fa.USER .. u8' Игрок: ' .. u8(sampGetPlayerNickname(player_id)) .. ' [' .. player_id .. ']')
+									imgui.Text(fa.STAR .. u8' Уровень розыска: ' .. item.lvl)
+									imgui.Text(fa.COMMENT .. u8' Причина выдачи розыска: ' .. u8(item.reason))
 									imgui.Separator()
 									if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
 										imgui.CloseCurrentPopup()
@@ -5043,8 +5370,11 @@ imgui.OnFrame(
 									imgui.SameLine()
 									if imgui.Button(fa.STAR .. u8' Выдать розыск', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
 										SumMenuWindow[0] = false
-										find_and_use_command('/su {arg_id} {arg2} {arg3}', player_id .. ' ' .. item.lvl .. ' ' .. item.reason)
-										sampAddChatMessage('/su ' .. player_id .. ' ' .. item.lvl .. ' ' .. item.reason, message_color)
+										if settings.general.use_form_su then
+											find_and_use_command('Прошу обьявить в розыск %{arg2%} степени дело N%-%(%{arg_id%}%)%. Причина%: %{arg3%}', player_id .. ' ' .. item.lvl .. ' ' .. item.reason)
+										else
+											find_and_use_command('/su {arg_id} {arg2} {arg3}', player_id .. ' ' .. item.lvl .. ' ' .. item.reason)
+										end
 										imgui.CloseCurrentPopup()
 									end
 									imgui.EndPopup()
@@ -5055,24 +5385,21 @@ imgui.OnFrame(
 				end
 			else
 				local input_sum_decoded = u8:decode(ffi.string(input_sum))
-				-- sampAddChatMessage(input_sum_decoded,-1)
 				for _, chapter in ipairs(smart_uk) do
 					if chapter.name:rupper():find(input_sum_decoded:rupper()) then
 						if imgui.CollapsingHeader(u8(chapter.name)) then
 							if chapter.item then 
 								for _, item in ipairs(chapter.item) do
-									local popup_id = fa.USER_DOCTOR .. u8' Проверка##' .. item.text .. item.lvl .. item.reason
+									local popup_id = fa.TRIANGLE_EXCLAMATION .. u8' Перепроверьте данные перед выдачей розыска##' .. item.text .. item.lvl .. item.reason
 									-- imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1.00, 1.00, 1.00, 0.65))
 									if imgui.Button(u8(item.text)..'##' .. item.text .. item.lvl .. item.reason, imgui.ImVec2( imgui.GetMiddleButtonX(1), 25 * MONET_DPI_SCALE)) then
 										imgui.OpenPopup(popup_id)
 									end 
 									-- imgui.PopStyleColor()
 									if imgui.BeginPopupModal(popup_id, nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
-										imgui.CenterText(u8'Перепроверьте данные перед выдачей розыска!')
-										imgui.Separator()
-										imgui.Text(u8'Игрок: ' .. u8(sampGetPlayerNickname(player_id)) .. ' [' .. player_id .. ']')
-										imgui.Text(u8'Уровень розыска: ' .. item.lvl)
-										imgui.Text(u8'Причина выдачи розыска: ' .. u8(item.reason))
+										imgui.Text(fa.USER .. u8' Игрок: ' .. u8(sampGetPlayerNickname(player_id)) .. ' [' .. player_id .. ']')
+										imgui.Text(fa.STAR .. u8' Уровень розыска: ' .. item.lvl)
+										imgui.Text(fa.COMMENT .. u8' Причина выдачи розыска: ' .. u8(item.reason))
 										imgui.Separator()
 										if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
 											imgui.CloseCurrentPopup()
@@ -5080,8 +5407,11 @@ imgui.OnFrame(
 										imgui.SameLine()
 										if imgui.Button(fa.STAR .. u8' Выдать розыск', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
 											SumMenuWindow[0] = false
-											find_and_use_command('/su {arg_id} {arg2} {arg3}', player_id .. ' ' .. item.lvl .. ' ' .. item.reason)
-											sampAddChatMessage('/su ' .. player_id .. ' ' .. item.lvl .. ' ' .. item.reason, message_color)
+											if settings.general.use_form_su then
+												find_and_use_command('Прошу обьявить в розыск %{arg2%} степени дело N%-%(%{arg_id%}%)%. Причина%: %{arg3%}', player_id .. ' ' .. item.lvl .. ' ' .. item.reason)
+											else
+												find_and_use_command('/su {arg_id} {arg2} {arg3}', player_id .. ' ' .. item.lvl .. ' ' .. item.reason)
+											end
 											imgui.CloseCurrentPopup()
 										end
 										imgui.EndPopup()
@@ -5100,6 +5430,93 @@ imgui.OnFrame(
     end
 )
 
+imgui.OnFrame(
+    function() return TsmMenuWindow[0] end,
+    function(player)
+        imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+        imgui.SetNextWindowSize(imgui.ImVec2(600 * MONET_DPI_SCALE, 413 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
+        imgui.Begin(fa.TICKET .. u8" Justice Helper - Умная выдача штрафов##tsm_menu", TsmMenuWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize)
+        if smart_pdd ~= nil and isParamSampID(player_id) then
+			imgui.SetWindowFontScale(1.4)
+			imgui.Text(fa.MAGNIFYING_GLASS .. u8' Поиск:')
+			imgui.SetWindowFontScale(1.0)
+			imgui.SameLine()
+			imgui.PushItemWidth(495 * MONET_DPI_SCALE)
+			imgui.InputText(u8'##input_tsm', input_tsm, 128) 
+			imgui.Separator()
+			if u8:decode(ffi.string(input_tsm)) == '' then
+				for _, chapter in ipairs(smart_pdd) do
+					if imgui.CollapsingHeader(u8(chapter.name)) then
+						if chapter.item then 
+							for _, item in ipairs(chapter.item) do
+								local popup_id = fa.TRIANGLE_EXCLAMATION .. u8' Перепроверьте данные перед выдачей штрафа##' .. item.text .. item.amount .. item.reason
+								-- imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1.00, 1.00, 1.00, 0.65))
+								if imgui.Button(u8(item.text)..'##' .. item.text .. item.amount .. item.reason, imgui.ImVec2( imgui.GetMiddleButtonX(1), 25 * MONET_DPI_SCALE)) then
+									imgui.OpenPopup(popup_id)
+								end 
+								-- imgui.PopStyleColor()
+								if imgui.BeginPopupModal(popup_id, nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
+									imgui.Text(fa.USER .. u8' Игрок: ' .. u8(sampGetPlayerNickname(player_id)) .. ' [' .. player_id .. ']')
+									imgui.Text(fa.MONEY_CHECK_DOLLAR .. u8' Сумма штрафа: $' .. item.amount)
+									imgui.Text(fa.COMMENT .. u8' Причина выдачи штрафа: ' .. u8(item.reason))
+									imgui.Separator()
+									if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+										imgui.CloseCurrentPopup()
+									end
+									imgui.SameLine()
+									if imgui.Button(fa.TICKET .. u8' Выписать штраф', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+										TsmMenuWindow[0] = false
+										find_and_use_command('/writeticket {arg}', player_id .. ' ' .. item.amount .. ' ' .. item.reason)
+										imgui.CloseCurrentPopup()
+									end
+									imgui.EndPopup()
+								end
+							end
+						end
+					end
+				end
+			else
+				local input_tsm_decoded = u8:decode(ffi.string(input_tsm))
+				for _, chapter in ipairs(smart_pdd) do
+					if chapter.name:rupper():find(input_tsm_decoded:rupper()) then
+						if imgui.CollapsingHeader(u8(chapter.name)) then
+							if chapter.item then 
+								for _, item in ipairs(chapter.item) do
+									local popup_id = fa.TRIANGLE_EXCLAMATION .. u8' Перепроверьте данные перед выдачей штрафа##' .. item.text .. item.amount .. item.reason
+									-- imgui.PushStyleColor(imgui.Col.Button, imgui.ImVec4(1.00, 1.00, 1.00, 0.65))
+									if imgui.Button(u8(item.text)..'##' .. item.text .. item.amount .. item.reason, imgui.ImVec2( imgui.GetMiddleButtonX(1), 25 * MONET_DPI_SCALE)) then
+										imgui.OpenPopup(popup_id)
+									end 
+									-- imgui.PopStyleColor()
+									if imgui.BeginPopupModal(popup_id, nil, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize) then
+										imgui.Text(fa.USER .. u8' Игрок: ' .. u8(sampGetPlayerNickname(player_id)) .. ' [' .. player_id .. ']')
+										imgui.Text(fa.MONEY_CHECK_DOLLAR .. u8' Сумма штрафа: $' .. item.amount)
+										imgui.Text(fa.COMMENT .. u8' Причина выдачи штрафа: ' .. u8(item.reason))
+										imgui.Separator()
+										if imgui.Button(fa.CIRCLE_XMARK .. u8' Отмена', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+											imgui.CloseCurrentPopup()
+										end
+										imgui.SameLine()
+										if imgui.Button(fa.TICKET .. u8' Выписать штраф', imgui.ImVec2(200 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+											TsmMenuWindow[0] = false
+											find_and_use_command('/writeticket {arg_id} {arg2} {arg3}', player_id .. ' ' .. item.amount .. ' ' .. item.reason)
+											imgui.CloseCurrentPopup()
+										end
+										imgui.EndPopup()
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+        else
+            sampAddChatMessage('[Justice Helper] {ffffff}Произошла ошибка умных штрафов (нету данных либо игрок офнулся)!', message_color)
+            TsmMenuWindow[0] = false
+        end
+        imgui.End()
+    end
+)
 
 function imgui.CenterText(text)
     local width = imgui.GetWindowWidth()
@@ -5373,7 +5790,7 @@ function main()
 	if not isSampLoaded() or not isSampfuncsLoaded() then return end
     while not isSampAvailable() do wait(0) end 
 
-	check_update()
+	
 
 	welcome_message()
 
@@ -5381,6 +5798,8 @@ function main()
 
 	if tostring(settings.general.version) ~= tostring(thisScript().version) then 
 		InformationWindow[0] = true
+	else
+		check_update()
 	end
 
 	if settings.player_info.name_surname == '' or  settings.player_info.fraction == 'Неизвестно' then
