@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('Cross-platform script helper for Ministry of Justice (FBI and Police)')
 script_author("MTG MODS")
-script_version("Beta 2.1")
+script_version("Beta 3")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -183,7 +183,6 @@ local default_settings = {
 		{ cmd = 'point' , description = 'Установить метку для сотрудников' , text = '/r Срочно выдвигайтесь ко мне, отправляю вам координаты...&/point' , arg = '', enable = true, waiting = '1.200', deleted = false  },
 	}
 }
-
 local configDirectory = getWorkingDirectory():gsub('\\','/') .. "/Justice Helper"
 local path_helper = getWorkingDirectory():gsub('\\','/') .. "/Justice_Helper.lua"
 local path_settings = configDirectory .. "/Settings.json"
@@ -389,6 +388,7 @@ local UpdateWindow = imgui.new.bool()
 local updateUrl = ""
 local updateVer = ""
 local updateInfoText = ""
+local need_update = false
 
 local BinderWindow = imgui.new.bool()
 local waiting_slider = imgui.new.float(0)
@@ -1879,6 +1879,7 @@ function check_update()
 					if thisScript().version ~= uVer then
 						print('[Justice Helper] Доступно обновление!')
 						sampAddChatMessage('[Justice Helper] {ffffff}Доступно обновление!', message_color)
+						need_update = true
 						updateUrl = uUrl
 						updateVer = uVer
 						updateInfoText = uText
@@ -1903,6 +1904,7 @@ function check_update()
 					if thisScript().version ~= uVer then
 						print('[Justice Helper] Доступно обновление!')
 						sampAddChatMessage('[Justice Helper] {ffffff}Доступно обновление!', message_color)
+						need_update = true
 						updateUrl = uUrl
 						updateVer = uVer
 						updateInfoText = uText
@@ -4781,7 +4783,7 @@ imgui.OnFrame(
     function() return InformationWindow[0] end,
     function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(fa.BUILDING_SHIELD .. u8" Оповещение##info_menu", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.AlwaysAutoResize  )
+		imgui.Begin(fa.CIRCLE_INFO .. u8" Оповещение##info_menu", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.AlwaysAutoResize  )
 		imgui.CenterText(u8'Вы установили версию ' .. u8(tostring(thisScript().version)) .. u8' вместо прошлой версии ' .. u8(tostring(settings.general.version)) .. ".")
 		imgui.CenterText(u8'Необходимо сбросить все настройки хелпера, дабы иметь весь актуальный функционал!')
 		imgui.CenterText(u8'Если не сбросить настройки, у вас могут возникнуть разные непредвиденные ошибки и баги!')
@@ -4792,7 +4794,6 @@ imgui.OnFrame(
 		imgui.Separator()
 		if imgui.Button(fa.CIRCLE_XMARK .. u8' Не сбрасывать ',  imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
 			InformationWindow[0] = false
-			check_update()
 		end
 		imgui.SameLine()
 		if imgui.Button(fa.CIRCLE_RIGHT..u8' Сбросить настройки ',  imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
@@ -4826,7 +4827,7 @@ imgui.OnFrame(
     function() return UpdateWindow[0] end,
     function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(fa.CIRCLE_INFO .. u8" Оповещение##need_update", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.AlwaysAutoResize  )
+		imgui.Begin(fa.CIRCLE_INFO .. u8" Оповещение##need_update", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  )
 		imgui.CenterText(u8'У вас сейчас установлена версия хелпера ' .. u8(tostring(thisScript().version)) .. ".")
 		imgui.CenterText(u8'В базе данных найдена новая версия хелпера - ' .. u8(updateVer) .. ".")
 		imgui.CenterText(u8'Рекомендуется обновиться, дабы иметь весь актуальный функционал!')
@@ -4834,11 +4835,14 @@ imgui.OnFrame(
 		imgui.CenterText(u8('Что нового в версии ') .. u8(updateVer) .. ':')
 		imgui.Text(u8(updateInfoText))
 		imgui.Separator()
-		if imgui.Button(fa.CIRCLE_XMARK .. u8' Не обновлять ',  imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
+		if imgui.Button(fa.CIRCLE_XMARK .. u8' Не обновлять ',  imgui.ImVec2(250 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
 			UpdateWindow[0] = false
+			if tostring(settings.general.version) ~= tostring(thisScript().version) then 
+				InformationWindow[0] = true
+			end
 		end
 		imgui.SameLine()
-		if imgui.Button(fa.DOWNLOAD ..u8' Загрузить новую версию',  imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
+		if imgui.Button(fa.DOWNLOAD ..u8' Загрузить новую версию',  imgui.ImVec2(250 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
 			download_helper = true
 			downloadFileFromUrlToPath(updateUrl, path_helper)
 			UpdateWindow[0] = false
@@ -5470,10 +5474,10 @@ function main()
 
 	initialize_commands()
 
-	if tostring(settings.general.version) ~= tostring(thisScript().version) then 
+	check_update()
+
+	if tostring(settings.general.version) ~= tostring(thisScript().version) and not need_update then 
 		InformationWindow[0] = true
-	else
-		check_update()
 	end
 
 	if settings.player_info.name_surname == '' or  settings.player_info.fraction == 'Неизвестно' then
