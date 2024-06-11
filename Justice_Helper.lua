@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('Cross-platform script helper for Ministry of Justice (FBI and Police)')
 script_author("MTG MODS")
-script_version("Beta 2")
+script_version("Beta 2.1")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -4827,10 +4827,11 @@ imgui.OnFrame(
     function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(fa.CIRCLE_INFO .. u8" Оповещение##need_update", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.AlwaysAutoResize  )
-		imgui.CenterText(u8'У вас сейчас установлена версия ' .. u8(tostring(thisScript().version)) .. u8', и в облаке найдена версия ' .. u8(updateVer) .. ".")
-		imgui.CenterText(u8'Рекомендуется обновить хелпер, дабы иметь весь актуальный функционал!')
+		imgui.CenterText(u8'У вас сейчас установлена версия хелпера ' .. u8(tostring(thisScript().version)) .. ".")
+		imgui.CenterText(u8'В базе данных найдена новая версия хелпера - ' .. u8(updateVer) .. ".")
+		imgui.CenterText(u8'Рекомендуется обновиться, дабы иметь весь актуальный функционал!')
 		imgui.Separator()
-		imgui.CenterText('Что нового в версии ' .. u8(updateVer) .. ':')
+		imgui.CenterText(u8('Что нового в версии ') .. u8(updateVer) .. ':')
 		imgui.Text(u8(updateInfoText))
 		imgui.Separator()
 		if imgui.Button(fa.CIRCLE_XMARK .. u8' Не обновлять ',  imgui.ImVec2(imgui.GetMiddleButtonX(2), 25 * MONET_DPI_SCALE)) then
