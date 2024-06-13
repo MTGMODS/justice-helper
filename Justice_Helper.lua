@@ -2562,8 +2562,11 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 		text = string.gsub(text, 'Ник%s+Уровень розыска%s+Расстояние\n', '')
 		for line in string.gmatch(text, '[^\n]+') do
 			local nick, id, lvl, dist = string.match(line, '(%w+_%w+)%((%d+)%)%s+(%d) уровень%s+%[(.+)%]')
-			dist = string.gsub(dist, 'в интерьере', 'В интерьере')
-			dist = string.gsub(dist, 'м%.', 'м')
+			if dist:find('в интерьере') then
+				dist = string.gsub(dist, 'в интерьере', 'В интерьере')
+			else
+				dist = string.gsub(dist, 'м%.', 'м')
+			end
 			table.insert(wanted_new, {nick = nick, id = id, lvl = lvl, dist = dist})
 		end
 		sampSendDialogResponse(dialogid, 1, 999999, 0)
@@ -2588,9 +2591,9 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 		return false
 	end
 
-	for line in text:gmatch('[^\n]+') do
-		sampAddChatMessage(line, color)
-	end
+	-- for line in text:gmatch('[^\n]+') do
+	-- 	sampAddChatMessage(line, color)
+	-- end
 
 	-- if title == sampGetPlayerNickname(playerid) then
 	-- 	local text = 'В результате обыска найдено:'
