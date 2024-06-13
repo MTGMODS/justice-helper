@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('Cross-platform script helper for Ministry of Justice (FBI and Police)')
 script_author("MTG MODS")
-script_version("Beta 3")
+script_version("Beta 4")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -355,6 +355,12 @@ local members_check = false
 local members_fraction = nil
 local update_members_check = false
 
+local WantedWindow = imgui.new.bool()
+local wanted = {}
+local wanted_new = {}
+local check_wanted = false
+local update_wanted_check = false
+
 local GiveRankMenu = imgui.new.bool()
 local giverank = imgui.new.int(5)
 
@@ -388,7 +394,10 @@ local UpdateWindow = imgui.new.bool()
 local updateUrl = ""
 local updateVer = ""
 local updateInfoText = ""
-local need_update = false
+local need_update_helper = false
+local download_helper = false
+local download_smartuk = false
+local download_smartpdd = false
 
 local BinderWindow = imgui.new.bool()
 local waiting_slider = imgui.new.float(0)
@@ -603,10 +612,8 @@ local platoon_check = false
 
 local enemy = {}
 
-local need_update_helper = false
-local download_helper = false
-local download_smartuk = false
-local download_smartpdd = false
+local InfraredVision = false
+local NightVision = false
 
 ------------------------------------------- Main -----------------------------------------------------
 
@@ -882,6 +889,63 @@ function initialize_commands()
 		else
 			sampAddChatMessage('[Justice Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!', message_color)
 		end
+	end)
+	sampRegisterChatCommand("pnv", function(arg)
+		if not isActiveCommand then
+			NightVision = not NightVision
+			if NightVision then
+				sampSendChat('/me достаёт из кармана очки ночного видения и надевает их')
+			else
+				sampSendChat('/me снимает с себя очки ночного видения и убирает их в карман')
+			end
+			setNightVision(NightVision)	
+			InfraredVision = false
+			setInfraredVision(InfraredVisio)	
+		else
+			sampAddChatMessage('[Justice Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!', message_color)
+		end
+	end)
+	sampRegisterChatCommand("irv", function(arg)
+		if not isActiveCommand then
+			InfraredVision = not InfraredVision
+			setInfraredVision(InfraredVision)	
+			NightVision = false
+			setNightVision(NightVision)	
+			if InfraredVision then
+				sampSendChat('/me достаёт из кармана инфакрасные очки и надевает их')
+			else
+				sampSendChat('/me снимает с себя инфакрасные очки и убирает их в карман')
+			end
+		else
+			sampAddChatMessage('[Justice Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!', message_color)
+		end
+	end)
+	sampRegisterChatCommand("wanted", function(arg)
+		if arg == '' then
+			if not isActiveCommand then
+				lua_thread.create(function()
+					sampAddChatMessage('[Justice Helper] {ffffff}Сканирую /wanted [1-7], ожидайте...', message_color)
+					wanted_new = {}
+					check_wanted = true
+					for i = 7, 1, -1 do
+						sampSendChat('/wanted ' .. i)
+						wait(300)
+					end
+					check_wanted = false
+					if #wanted_new == 0 then
+						sampAddChatMessage('[Justice Helper] {ffffff}Сейчас на сервере нету игроков с розыском!', message_color)
+					else
+						wanted = wanted_new
+						WantedWindow[0] = true
+					end
+				end)
+			else
+				sampAddChatMessage('[Justice Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!', message_color)
+			end
+		else
+			sampSendChat('/wanted ' .. arg)
+		end
+		
 	end)
 	sampRegisterChatCommand("debug", function() debug_mode = not debug_mode end)
 	sampRegisterChatCommand("mask", function() 
@@ -1815,6 +1879,16 @@ function calculateZoneRu(x, y, z)
     end
     return 'Пригород'
 end
+function argbToRgbNormalized(argb)
+    local a = math.floor(argb / 0x1000000) % 0x100
+    local r = math.floor(argb / 0x10000) % 0x100
+    local g = math.floor(argb / 0x100) % 0x100
+    local b = argb % 0x100
+    local normalizedR = r / 255.0
+    local normalizedG = g / 255.0
+    local normalizedB = b / 255.0
+    return {normalizedR, normalizedG, normalizedB}
+end
 function getARZServerNumber()
 	local server = 0
 	local servers = {
@@ -1879,7 +1953,7 @@ function check_update()
 					if thisScript().version ~= uVer then
 						print('[Justice Helper] Доступно обновление!')
 						sampAddChatMessage('[Justice Helper] {ffffff}Доступно обновление!', message_color)
-						need_update = true
+						need_update_helper = true
 						updateUrl = uUrl
 						updateVer = uVer
 						updateInfoText = uText
@@ -1904,7 +1978,7 @@ function check_update()
 					if thisScript().version ~= uVer then
 						print('[Justice Helper] Доступно обновление!')
 						sampAddChatMessage('[Justice Helper] {ffffff}Доступно обновление!', message_color)
-						need_update = true
+						need_update_helper = true
 						updateUrl = uUrl
 						updateVer = uVer
 						updateInfoText = uText
@@ -2224,6 +2298,12 @@ function sampev.onServerMessage(color,text)
 		sampAddChatMessage('[Justice Helper] {ffffff}Вы сняли маску!', message_color)
 		return false
 	end
+	if text:find('%[Ошибка%] %{FFFFFF%}Используй: %/wanted %[уровень розыска 1%-6%]') and check_wanted then
+		return false
+	end
+	if text:find('%[Ошибка%] {FFFFFF}Игроков с таким уровнем розыска нету!') and check_wanted then 
+		return false 
+	end
 end
 function sampev.onSendChat(text)
 	local ignore = {
@@ -2477,6 +2557,41 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 		return false
 	end
 
+	if text:find('Ник') and text:find('Уровень розыска') and text:find('Расстояние') and check_wanted then
+		local text = string.gsub(text, '%{......}', '')
+		text = string.gsub(text, 'Ник%s+Уровень розыска%s+Расстояние\n', '')
+		for line in string.gmatch(text, '[^\n]+') do
+			local nick, id, lvl, dist = string.match(line, '(%w+_%w+)%((%d+)%)%s+(%d) уровень%s+%[(.+)%]')
+			dist = string.gsub(dist, 'в интерьере', 'В интерьере')
+			dist = string.gsub(dist, 'м%.', 'м')
+			table.insert(wanted_new, {nick = nick, id = id, lvl = lvl, dist = dist})
+		end
+		sampSendDialogResponse(dialogid, 1, 999999, 0)
+		return false
+	end
+
+	if title:find('Дата и время убийства') then
+		local data = text:match('%{FFFFFF%}Дата и время%: %{90EE90%}(.+)\n%{FFFFFF%}Орудие убийства')
+		if debug_mode then sampAddChatMessage('[Justice Helper] Автозаполнение данных: ' .. data , message_color) end
+		sampSendDialogResponse(dialogid, 1, 0, data)
+		return false
+	end
+
+	if title:find('Орудие убийства') then
+		if text:find("Неизвестно") then
+			sampSendDialogResponse(dialogid, 1, 0, "Неизвестно")
+		else
+			local data = text:match('Орудие убийства%: %{90EE90%}(.+)\n')
+			if not debug_mode then sampAddChatMessage('[Justice Helper] Автозаполнение данных: ' .. data , message_color) end
+			sampSendDialogResponse(dialogid, 1, 0, data)
+		end
+		return false
+	end
+
+	for line in text:gmatch('[^\n]+') do
+		sampAddChatMessage(line, color)
+	end
+
 	-- if title == sampGetPlayerNickname(playerid) then
 	-- 	local text = 'В результате обыска найдено:'
 	-- 	if text:find('{FFFFFF}Патроны: 	%[(%d+) ед%]') then
@@ -2720,7 +2835,22 @@ imgui.OnFrame(
 				
 				imgui.EndChild()
 				end
-				if imgui.BeginChild('##3', imgui.ImVec2(589 * MONET_DPI_SCALE, 185 * MONET_DPI_SCALE), true) then
+				if imgui.BeginChild('##2', imgui.ImVec2(589 * MONET_DPI_SCALE, 53 * MONET_DPI_SCALE), true) then
+					imgui.CenterText(fa.ROBOT .. u8' Асистент патруля')
+					imgui.Separator()
+					imgui.Columns(3)
+					imgui.CenterColumnText(u8"123")
+					imgui.SetColumnWidth(-1, 230 * MONET_DPI_SCALE)
+					imgui.NextColumn()
+					imgui.CenterColumnText(u8("В разработке..."))
+					imgui.SetColumnWidth(-1, 250 * MONET_DPI_SCALE)
+					imgui.NextColumn()
+					imgui.CenterColumnText(u8("пон?"))
+					imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+					imgui.Columns(1)
+				imgui.EndChild()
+				end
+				if imgui.BeginChild('##3', imgui.ImVec2(589 * MONET_DPI_SCALE, 127 * MONET_DPI_SCALE), true) then
 					imgui.CenterText(fa.SITEMAP .. u8' Дополнительные функции хелпера')
 					imgui.Separator()
 					imgui.Columns(3)
@@ -2831,50 +2961,37 @@ imgui.OnFrame(
 						end
 					end
 					imgui.Columns(1)
-					imgui.Separator()
-					imgui.Columns(3)
-					imgui.CenterColumnText(u8"Помощник в Патруле")
-					imgui.SameLine(nil, 5) imgui.TextDisabled("[?]")
-					if imgui.IsItemHovered() then
-						imgui.SetTooltip(u8"пон")
-					end
-					imgui.NextColumn()
-					imgui.CenterColumnText(u8'В разработке...')
-					imgui.NextColumn()
-					imgui.CenterColumnSmallButton(u8'Отключить')
-					imgui.Separator()
-					imgui.Columns(1)
-					imgui.Columns(3)
-					imgui.CenterColumnText(u8"Авто Увал")
-					imgui.SameLine(nil, 5) imgui.TextDisabled("[?]")
-					if imgui.IsItemHovered() then
-						imgui.SetTooltip(u8"Автоматическое увольнение сотрудников, которые хотят увал ПСЖ\nФункция доступна только если вы 9/10 ранг!")
-					end
-					imgui.NextColumn()
-					if settings.general.auto_uval then
-						imgui.CenterColumnText(u8'Включено')
-					else
-						imgui.CenterColumnText(u8'Отключено')
-					end
-					imgui.NextColumn()
-					if settings.general.auto_uval then
-						if imgui.CenterColumnSmallButton(u8'Отключить##auto_uval') then
-							settings.general.auto_uval = false
-							save_settings()
-						end
-					else
-						if imgui.CenterColumnSmallButton(u8'Включить##auto_uval') then
-							if tonumber(settings.player_info.fraction_rank_number) == 9 or tonumber(settings.player_info.fraction_rank_number) == 10 then 
-								settings.general.auto_uval = true
-								save_settings()
-							else
-								settings.general.auto_uval = false
-								sampAddChatMessage('[Justice Helper] {ffffff}Эта Функция доступна только лидеру и заместителям!',message_color)
-							end
-						end
-					end
-					imgui.Columns(1)
-					imgui.Separator()
+					-- imgui.Columns(3)
+					-- imgui.CenterColumnText(u8"Авто Увал")
+					-- imgui.SameLine(nil, 5) imgui.TextDisabled("[?]")
+					-- if imgui.IsItemHovered() then
+					-- 	imgui.SetTooltip(u8"Автоматическое увольнение сотрудников, которые хотят увал ПСЖ\nФункция доступна только если вы 9/10 ранг!")
+					-- end
+					-- imgui.NextColumn()
+					-- if settings.general.auto_uval then
+					-- 	imgui.CenterColumnText(u8'Включено')
+					-- else
+					-- 	imgui.CenterColumnText(u8'Отключено')
+					-- end
+					-- imgui.NextColumn()
+					-- if settings.general.auto_uval then
+					-- 	if imgui.CenterColumnSmallButton(u8'Отключить##auto_uval') then
+					-- 		settings.general.auto_uval = false
+					-- 		save_settings()
+					-- 	end
+					-- else
+					-- 	if imgui.CenterColumnSmallButton(u8'Включить##auto_uval') then
+					-- 		if tonumber(settings.player_info.fraction_rank_number) == 9 or tonumber(settings.player_info.fraction_rank_number) == 10 then 
+					-- 			settings.general.auto_uval = true
+					-- 			save_settings()
+					-- 		else
+					-- 			settings.general.auto_uval = false
+					-- 			sampAddChatMessage('[Justice Helper] {ffffff}Эта Функция доступна только лидеру и заместителям!',message_color)
+					-- 		end
+					-- 	end
+					-- end
+					-- imgui.Columns(1)
+					-- imgui.Separator()
 				imgui.EndChild()
 				end
 				imgui.EndTabItem()
@@ -2914,6 +3031,38 @@ imgui.OnFrame(
 							imgui.CenterColumnText(u8"/stop")
 							imgui.NextColumn()
 							imgui.CenterColumnText(u8"Остановить отыгровку команды")
+							imgui.NextColumn()
+							imgui.CenterColumnText(u8"Недоступно")
+							imgui.Columns(1)
+							imgui.Separator()
+							imgui.Columns(3)
+							imgui.CenterColumnText(u8"/pnv")
+							imgui.NextColumn()
+							imgui.CenterColumnText(u8"Надеть/снять очки ночного видения")
+							imgui.NextColumn()
+							imgui.CenterColumnText(u8"Недоступно")
+							imgui.Columns(1)
+							imgui.Separator()
+							imgui.Columns(3)
+							imgui.CenterColumnText(u8"/irv")
+							imgui.NextColumn()
+							imgui.CenterColumnText(u8"Надеть/снять инфакрасные очки")
+							imgui.NextColumn()
+							imgui.CenterColumnText(u8"Недоступно")
+							imgui.Columns(1)
+							imgui.Separator()
+							imgui.Columns(3)
+							imgui.CenterColumnText(u8"/mask")
+							imgui.NextColumn()
+							imgui.CenterColumnText(u8"Надеть/снять балаклаву")
+							imgui.NextColumn()
+							imgui.CenterColumnText(u8"Недоступно")
+							imgui.Columns(1)
+							imgui.Separator()
+							imgui.Columns(3)
+							imgui.CenterColumnText(u8"/wanted")
+							imgui.NextColumn()
+							imgui.CenterColumnText(u8"Общий список всех /wanted")
 							imgui.NextColumn()
 							imgui.CenterColumnText(u8"Недоступно")
 							imgui.Columns(1)
@@ -4489,7 +4638,15 @@ imgui.OnFrame(
     function() return MembersWindow[0] end,
     function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.SetNextWindowSize(imgui.ImVec2(600 * MONET_DPI_SCALE, 413 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
+
+		if tonumber(#members) >= 16 then
+			sizeYY = 413
+		else
+			sizeYY = 24.5 * ( tonumber(#members) + 1 )
+		end
+		imgui.SetNextWindowSize(imgui.ImVec2(600 * MONET_DPI_SCALE, sizeYY * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
+		--imgui.SetNextWindowSize(imgui.ImVec2(600 * MONET_DPI_SCALE, 413 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
+
 		imgui.Begin(fa.BUILDING_SHIELD .. " " ..  u8(members_fraction) .. " - " .. #members .. u8' сотрудников онлайн', MembersWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize )
 		for i, v in ipairs(members) do
 			imgui.Columns(3)
@@ -4518,6 +4675,52 @@ imgui.OnFrame(
 			imgui.SetColumnWidth(-1, 75 * MONET_DPI_SCALE)
 			imgui.Columns(1)
 			imgui.Separator()
+		end
+		imgui.End()
+    end
+)
+
+imgui.OnFrame(
+    function() return WantedWindow[0] end,
+    function(player)
+		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 1.2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+
+		if tonumber(#wanted) >= 16 then
+			sizeYY = 413
+		else
+			sizeYY = 24.5 * ( tonumber(#wanted) + 2 )
+		end
+		imgui.SetNextWindowSize(imgui.ImVec2(400 * MONET_DPI_SCALE, sizeYY * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
+		--imgui.SetNextWindowSize(imgui.ImVec2(600 * MONET_DPI_SCALE, 413 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
+		
+		imgui.Begin(fa.STAR .. u8" Список преступников (всего " .. #wanted .. u8')', WantedWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize )
+		player.HideCursor = true
+		imgui.Columns(3)
+		imgui.CenterColumnText(u8("Никнейм"))
+		imgui.SetColumnWidth(-1, 220 * MONET_DPI_SCALE)
+		imgui.NextColumn()
+		imgui.CenterColumnText(u8("Розыск"))
+		imgui.SetColumnWidth(-1, 70 * MONET_DPI_SCALE)
+		imgui.NextColumn()
+		imgui.CenterColumnText(u8("Растояние"))
+		imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+		imgui.Columns(1)
+		for i, v in ipairs(wanted) do
+			imgui.Separator()
+			imgui.Columns(3)
+			local rgbNormalized = argbToRgbNormalized(sampGetPlayerColor(v.id))  -- Преобразуем ARGB в RGB в диапазоне от 0.00 до 1.00
+			local imgui_RGBA = imgui.ImVec4(rgbNormalized[1], rgbNormalized[2], rgbNormalized[3], 1)
+			imgui.CenterColumnColorText(imgui_RGBA, u8(v.nick) .. ' [' .. v.id .. ']')
+			if imgui.IsItemClicked() and not v.dist:find('В интерьере') then
+				sampSendChat('/pursuit ' .. v.id)
+			end
+			imgui.NextColumn()
+			imgui.CenterColumnText(u8(v.lvl) .. ' ' .. fa.STAR)
+			imgui.NextColumn()
+			imgui.CenterColumnText(u8(v.dist))
+			imgui.NextColumn()
+			imgui.Columns(1)
+			
 		end
 		imgui.End()
     end
@@ -4827,7 +5030,7 @@ imgui.OnFrame(
     function() return UpdateWindow[0] end,
     function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		imgui.Begin(fa.CIRCLE_INFO .. u8" Оповещение##need_update", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  )
+		imgui.Begin(fa.CIRCLE_INFO .. u8" Оповещение##need_update_helper", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  )
 		imgui.CenterText(u8'У вас сейчас установлена версия хелпера ' .. u8(tostring(thisScript().version)) .. ".")
 		imgui.CenterText(u8'В базе данных найдена новая версия хелпера - ' .. u8(updateVer) .. ".")
 		imgui.CenterText(u8'Рекомендуется обновиться, дабы иметь весь актуальный функционал!')
@@ -5476,7 +5679,7 @@ function main()
 
 	check_update()
 
-	if tostring(settings.general.version) ~= tostring(thisScript().version) and not need_update then 
+	if tostring(settings.general.version) ~= tostring(thisScript().version) and not need_update_helper then 
 		InformationWindow[0] = true
 	end
 
@@ -5503,6 +5706,25 @@ function main()
 			end
 			wait(1500)
 			update_members_check = false
+		end
+
+		if WantedWindow[0] and not update_wanted_check then -- обновление мемберса в менюшке
+			update_wanted_check = true
+			wanted_new = {}
+			check_wanted = true
+			for i = 7, 1, -1 do
+				if WantedWindow[0]  then
+					sampSendChat('/wanted ' .. i)
+					wait(300)
+				else
+					wanted = {}
+					wanted_new = {}
+				end
+			end
+			check_wanted = false
+			wanted = wanted_new
+			wait(7900)
+			update_wanted_check = false
 		end
 		
 		if isMonetLoader() then
@@ -5574,6 +5796,8 @@ function onScriptTerminate(script, game_quit)
 		if not isMonetLoader() then 
 			sampAddChatMessage('[Justice Helper] {ffffff}Используйте ' .. message_color_hex .. 'CTRL {ffffff}+ ' .. message_color_hex .. 'R {ffffff}чтобы перезапустить хелпер.', message_color)
 		end
+		setInfraredVision(false)
+		setNightVision(false)
 		play_error_sound()
     end
 end
