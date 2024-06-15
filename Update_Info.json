@@ -1,5 +1,5 @@
 {
-  "current_version": "Beta 4",
+  "current_version": "Beta 4.1",
   "update_url": "https://raw.githubusercontent.com/MTGMODS/justice-helper/main/Justice_Helper.lua",
-  "update_info": "- Добавлено меню /wanted\n- Прочие мелкие фиксы и оптимизация"
+  "update_info": "- Прочие мелкие фиксы и оптимизация"
 }

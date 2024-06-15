@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('Cross-platform script helper for Ministry of Justice (FBI and Police)')
 script_author("MTG MODS")
-script_version("Beta 4")
+script_version("Beta 4.1")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -924,7 +924,7 @@ function initialize_commands()
 		if arg == '' then
 			if not isActiveCommand then
 				lua_thread.create(function()
-					sampAddChatMessage('[Justice Helper] {ffffff}Сканирую /wanted [1-7], ожидайте...', message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Начинаю сканирование /wanted [1-7], ожидайте...', message_color)
 					wanted_new = {}
 					check_wanted = true
 					for i = 7, 1, -1 do
@@ -935,6 +935,8 @@ function initialize_commands()
 					if #wanted_new == 0 then
 						sampAddChatMessage('[Justice Helper] {ffffff}Сейчас на сервере нету игроков с розыском!', message_color)
 					else
+						sampAddChatMessage('[Justice Helper] {ffffff}Внимание! Данные будут обновляться каждые 5 секунд, из-за чего могут быть проблемы с диалогами!', message_color)
+						sampAddChatMessage('[Justice Helper] {ffffff}Чтобы диалоги опять стабильно работали, просто закройте менюшку списка преступников.', message_color)
 						wanted = wanted_new
 						WantedWindow[0] = true
 					end
@@ -2563,9 +2565,9 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 		for line in string.gmatch(text, '[^\n]+') do
 			local nick, id, lvl, dist = string.match(line, '(%w+_%w+)%((%d+)%)%s+(%d) уровень%s+%[(.+)%]')
 			if dist:find('в интерьере') then
-				dist = string.gsub(dist, 'в интерьере', 'В интерьере')
-			else
-				dist = string.gsub(dist, 'м%.', 'м')
+				dist = 'В инте'
+			-- else
+			-- 	dist = string.gsub(dist, 'м%.', 'м')
 			end
 			table.insert(wanted_new, {nick = nick, id = id, lvl = lvl, dist = dist})
 		end
@@ -4690,23 +4692,26 @@ imgui.OnFrame(
 
 		if tonumber(#wanted) >= 16 then
 			sizeYY = 413
-		else
+		elseif tonumber(#wanted) > 0 then
 			sizeYY = 24.5 * ( tonumber(#wanted) + 2 )
+		elseif tonumber(#wanted) == 0 then
+			sampAddChatMessage('[Justice Helper] {ffffff}Сейчас на сервере нету игроков с розыском!', message_color)
+			WantedWindow[0] = false
 		end
-		imgui.SetNextWindowSize(imgui.ImVec2(400 * MONET_DPI_SCALE, sizeYY * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
+		imgui.SetNextWindowSize(imgui.ImVec2(350 * MONET_DPI_SCALE, sizeYY * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
 		--imgui.SetNextWindowSize(imgui.ImVec2(600 * MONET_DPI_SCALE, 413 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
 		
 		imgui.Begin(fa.STAR .. u8" Список преступников (всего " .. #wanted .. u8')', WantedWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize )
 		player.HideCursor = true
 		imgui.Columns(3)
 		imgui.CenterColumnText(u8("Никнейм"))
-		imgui.SetColumnWidth(-1, 220 * MONET_DPI_SCALE)
+		imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
 		imgui.NextColumn()
 		imgui.CenterColumnText(u8("Розыск"))
-		imgui.SetColumnWidth(-1, 70 * MONET_DPI_SCALE)
+		imgui.SetColumnWidth(-1, 65 * MONET_DPI_SCALE)
 		imgui.NextColumn()
 		imgui.CenterColumnText(u8("Растояние"))
-		imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+		imgui.SetColumnWidth(-1, 80 * MONET_DPI_SCALE)
 		imgui.Columns(1)
 		for i, v in ipairs(wanted) do
 			imgui.Separator()
@@ -5699,36 +5704,17 @@ function main()
 	while true do
 		wait(0)
 
-		if MembersWindow[0] and not update_members_check then -- обновление мемберса в менюшке
-			update_members_check = true
-			wait(1500)
-			if MembersWindow[0] then
-				members_new = {} 
-				members_check = true 
-				sampSendChat("/members") 
-			end
-			wait(1500)
-			update_members_check = false
-		end
-
-		if WantedWindow[0] and not update_wanted_check then -- обновление мемберса в менюшке
-			update_wanted_check = true
-			wanted_new = {}
-			check_wanted = true
-			for i = 7, 1, -1 do
-				if WantedWindow[0]  then
-					sampSendChat('/wanted ' .. i)
-					wait(300)
-				else
-					wanted = {}
-					wanted_new = {}
-				end
-			end
-			check_wanted = false
-			wanted = wanted_new
-			wait(7900)
-			update_wanted_check = false
-		end
+		-- if MembersWindow[0] and not update_members_check then -- обновление мемберса в менюшке
+		-- 	update_members_check = true
+		-- 	wait(1500)
+		-- 	if MembersWindow[0] then
+		-- 		members_new = {} 
+		-- 		members_check = true 
+		-- 		sampSendChat("/members") 
+		-- 	end
+		-- 	wait(1500)
+		-- 	update_members_check = false
+		-- end
 		
 		if isMonetLoader() then
 			if settings.general.mobile_fastmenu_button then
@@ -5787,6 +5773,22 @@ function main()
 				sampSendChat("/me " .. gunOff[oldGun] .. " " .. weapons.get_name(oldGun) .. " " .. gunPartOff[oldGun] .. ", после чего " .. gunOn[nowGun] .. " " .. weapons.get_name(nowGun) .. " " .. gunPartOn[nowGun])
 			end
 			-- wait(300)
+		end
+
+		if WantedWindow[0] and not update_wanted_check then -- обновление мемберса в менюшке
+			update_wanted_check = true	
+			wanted_new = {}
+			check_wanted = true
+			for i = 7, 1, -1 do
+				if WantedWindow[0] then
+					sampSendChat('/wanted ' .. i)
+					wait(300)
+				end
+			end
+			check_wanted = false
+			wanted = wanted_new
+			wait(300)
+			update_wanted_check = false
 		end
 		
 	end
