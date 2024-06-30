@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('Cross-platform script helper for Ministry of Justice (FBI and Police) and Ministry of Defense')
 script_author("MTG MODS")
-script_version("Beta 4.3")
+script_version("Beta 4.4")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -400,11 +400,9 @@ function load_arzvehicles()
 	else
 		print('[Justice Helper] Не удалось открыть файл с моделями каров аризоны!')
 		print('[Justice Helper] Причина: этого файла нету в папке ' .. configDirectory)
-		print('[Justice Helper] Пытаюсь скачать его...')
-		download_arzvehicles()
 	end
 end
--- load_arzvehicles()
+load_arzvehicles()
 ------------------------------------------- MonetLoader --------------------------------------------------
 function isMonetLoader() return MONET_VERSION ~= nil end
 if isMonetLoader() then
@@ -1584,7 +1582,7 @@ for id, weapon in pairs(weapons.names) do
 		gunPartOff[id] = rpTakeNames[rpTake[id]][2]
 	end
 end
-function download_arzvehicles()
+function download_arzvehicle_json()
 	download_arzvehicles = true
 	downloadFileFromUrlToPath('https://raw.githubusercontent.com/MTGMODS/justice-helper/main/VehiclesArizona/vehicles.json', path_arzvehicles)
 end
@@ -1598,13 +1596,14 @@ function getNameOfARZVehicleModel(id)
 				end
 			end
 		else
-			sampAddChatMessage('[Justice Helper] {ffffff}Не удалось получить модель т/с с ID ' .. id .. "! Причина: ошибка Инициализации VehiclesArizona.json")
+			sampAddChatMessage('[Justice Helper] {ffffff}Не удалось получить модель т/с с ID ' .. id .. "! Причина: ошибка Инициализации VehiclesArizona.json", message_color)
 			load_arzvehicles()
 			return ''
 		end
 	else
-		sampAddChatMessage('[Justice Helper] {ffffff}Не удалось получить модель т/с с ID ' .. id .. "! Причина: отсуствует файл VehiclesArizona.json")
-		download_arzvehicles()
+		sampAddChatMessage('[Justice Helper] {ffffff}Не удалось получить модель т/с с ID ' .. id .. "! Причина: отсуствует файл VehiclesArizona.json", message_color)
+		sampAddChatMessage('[Justice Helper] {ffffff}Пытаюсь скачать файл VehiclesArizona.json в папку ' .. path_arzvehicles, message_color)
+		download_arzvehicle_json()
 		return ''
 	end
 
