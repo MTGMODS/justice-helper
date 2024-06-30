@@ -128,12 +128,13 @@ local default_settings = {
 			'-',
 			'- з.к. -',
 			'- 101.1 FM - ',
+
 		},
 	},
 	note = {
 		{ note_name = 'Зарплата', note_text = 'Почему ваша зарплата может быть меньше, чем указано:&- Если у вас нету жилья (дом/отель) то у вас будет -20 процентов зп&- Если у вас есть выговор то у вас будет -20 процентов зп&- Из-за фикса экономики (от разрабов) у вас будет -10 процентов зп&&Как повысить свою зарплату:&- Вступите в фулл семью с флагом чтобы иметь +7 процентов зп &( на 20 сервере это наша семья Martelli )&- Получите \"Военный билет\" чтобы иметь +15 процентов зп&- Купите охранника на \"зп фракции\" чтобы иметь до +25 процентов зп&- Повышайтесь на ранг повыше'  },
 		{ note_name = 'Тен-коды', note_text = '10-1 - Сбор всех офицеров на дежурстве.&10-3 - Радиомолчание.&10-4 - Принято.&10-5 - Повторите.&10-6 - Не принято/Нет.&10-7 - Ожидайте.&10-8 - Не доступен/занят.&10-14 - Запрос транспортировки.&10-15 - Подозреваемые арестованы.&10-18 - Требуется поддержка дополнительных юнитов.&10-20 - Локация.&10-21 - Статус и местонахождение.&10-22 - Выдвигайтесь к локации.&10-27 - Меняю маркировку патруля.&10-46 - Провожу обыск.&10-55 - Траффик стоп.&10-66 - Траффик стоп повышенного риска.&10-88 - Теракт/ЧС.&10-99 - Ситуация урегулирована.&10-100 Временно недоступен для вызовов.' },
-		{ note_name = 'Ситуационные коды', note_text = 'CODE 0 - Офицер ранен.&CODE 1 - По офицеру открыт огонь.&CODE 2 - Приоритетный вызов [без сирен/стробоскопов/соблюдение ПДД].&CODE 3 - Срочный вызов [сирены, стробоскопы, игнорирования ПДД].&CODE 4 - Стабильно, помощь не требуется.&Code 4 ADAM - Помощь не требуется, но офицеры поблизости должны быть готовы оказать помощь.&CODE 5 - Офицерам держаться подальше от опасного места.&CODE 6 - Задерживаюсь на месте [включая локацию и причину,например, 911].&CODE 7 - Перерыв на обед.&Сode TOM - Офицеру требуется Тайзер.'  },
+		{ note_name = 'Ситуационные коды', note_text = 'CODE 0 - Офицер ранен.&CODE 1 - По офицеру открыт огонь.&CODE 2 - Приоритетный вызов [без сирен/стробоскопов/соблюдение ПДД].&CODE 3 - Срочный вызов [сирены, стробоскопы, игнорирования ПДД].&CODE 4 - Стабильно, помощь не требуется.&Code 4 ADAM - Помощь не требуется, но офицеры поблизости должны быть готовы оказать помощь.&CODE 5 - Офицерам держаться подальше от опасного места.&CODE 6 - Задерживаюсь на месте [включая локацию и причину,например, 911].&CODE 7 - Перерыв на обед.&Сode TOM - Офицеру требуется Тайзер.' },
 		{ note_name = 'Маркировки патруля', note_text = 'Основные:&ADAM [A] - Патруль из 2/3 офицеров на крузере.&LINCOLN [L] - Одиночный патруль на крузере.&MARY [M] - Одиночный патруль на мотоцикле.&HENRY [H] - Высокоскоростой патруль.&AIR [AIR] - Воздушный патруль.&Air Support Division [ASD] - Воздушная поддержка.&&Дополнительные:&CHARLIE [C] - Группа захвата.&ROBERT [R] - Отдел Детективов.&SUPERVISOR [SV] - Руководящий состав&David [D] - Cпец.отдел.'  },
 	}
 }
@@ -370,6 +371,40 @@ function save_commands()
     end
 end
 load_commands()
+-------------------------------------------- JSON ARZ VEHICLES ---------------------------------------------
+local path_arzvehicles = configDirectory .. "/VehiclesArizona.json"
+local arzvehicles = {}
+function load_arzvehicles()
+	if doesFileExist(path_arzvehicles) then
+		local file, errstr = io.open(path_arzvehicles, 'r')
+        if file then
+            local contents = file:read('*a')
+            file:close()
+			if #contents == 0 then
+				print('[Justice Helper] Не удалось открыть файл с моделями каров аризоны!')
+				print('[Justice Helper] Причина: этот файл пустой')
+			else
+				local result, loaded = pcall(decodeJson, contents)
+				if result then
+					arzvehicles = loaded
+					print('[Justice Helper] Модели кастом каров аризоны инициализированы!')
+				else
+					print('[Justice Helper] Не удалось открыть файл с моделями каров аризоны!')
+					print('[Justice Helper] Причина: Не удалось декодировать json (ошибка в файле)')
+				end
+			end
+        else
+			print('[Justice Helper] Не удалось открыть файл с моделями каров аризоны!')
+			print('[Justice Helper] Причина: ', errstr)
+        end
+	else
+		print('[Justice Helper] Не удалось открыть файл с моделями каров аризоны!')
+		print('[Justice Helper] Причина: этого файла нету в папке ' .. configDirectory)
+		print('[Justice Helper] Пытаюсь скачать его...')
+		download_arzvehicles()
+	end
+end
+-- load_arzvehicles()
 ------------------------------------------- MonetLoader --------------------------------------------------
 function isMonetLoader() return MONET_VERSION ~= nil end
 if isMonetLoader() then
@@ -436,7 +471,7 @@ local NoteWindow = imgui.new.bool()
 local show_note_name = nil
 local show_note_text = nil
 
-local InformationWindiw = imgui.new.bool()
+local InformationWindow = imgui.new.bool()
 
 local UpdateWindow = imgui.new.bool()
 local updateUrl = ""
@@ -446,6 +481,7 @@ local need_update_helper = false
 local download_helper = false
 local download_smartuk = false
 local download_smartpdd = false
+local download_arzvehicles = false
 
 local BinderWindow = imgui.new.bool()
 local waiting_slider = imgui.new.float(0)
@@ -507,11 +543,33 @@ local tagReplacements = {
 		}
 		return city[getCityPlayerIsIn(PLAYER_PED)]
 	end,
-
-	get_car_name = function ()
-		
-	end,
-
+	get_storecar_name = function ()
+		local closest_car = nil
+		local closest_distance = 50
+		local my_pos = {getCharCoordinates(PLAYER_PED)}
+		local my_car
+		if isCharInAnyCar(PLAYER_PED) then
+			my_car = storeCarCharIsInNoSave(PLAYER_PED)
+		end
+		for _, vehicle in ipairs(getAllVehicles()) do
+			if doesCharExist(getDriverOfCar(vehicle)) and vehicle ~= my_car then
+				local vehicle_pos = {getCarCoordinates(vehicle)}
+				local distance = getDistanceBetweenCoords3d(my_pos[1], my_pos[2], my_pos[3], vehicle_pos[1], vehicle_pos[2], vehicle_pos[3])
+				if distance < closest_distance and vehicle ~= my_car then
+					--sampAddChatMessage(math.floor(distance),-1)
+					closest_distance = distance
+					closest_car = vehicle
+				end
+				--sampAddChatMessage(select(2, sampGetPlayerIdByCharHandle(getDriverOfCar(vehicle))), 0x009EFF)
+			end
+		end
+		if closest_car then
+			return " " .. getNameOfARZVehicleModel(getCarModel(closest_car))
+		else
+			sampAddChatMessage("[Justice Helper] {ffffff}Не удалось получить данные про ближайший т/с! Возможно слишком большое расстояние.", 0x009EFF)
+			return ''
+		end
+	end
 }
 local binder_tags_text = [[
 {my_id} - Ваш ID
@@ -669,7 +727,6 @@ local InfraredVision = false
 local NightVision = false
 
 ------------------------------------------- Main -----------------------------------------------------
-
 function welcome_message()
 	if not sampIsLocalPlayerSpawned() then 
 		sampAddChatMessage('[Justice Helper] {ffffff}Инициализация хелпера прошла успешно!',message_color)
@@ -1018,7 +1075,7 @@ function initialize_commands()
 			sampSendChat('/wanted ' .. arg)
 		end
 	end)
-	sampRegisterChatCommand("debug", function() debug_mode = not debug_mode end)
+	sampRegisterChatCommand("debug", function() debug_mode = not debug_mode sampAddChatMessage(string.format("[ INFO ]{ffffff}: Ближайший автомобиль - %s.", tagReplacements.get_storecar_name()), 0x0088ff) end)
 	sampRegisterChatCommand("mask", function() 
 		if not isActiveCommand then
 			isActiveCommand = true
@@ -1527,7 +1584,62 @@ for id, weapon in pairs(weapons.names) do
 		gunPartOff[id] = rpTakeNames[rpTake[id]][2]
 	end
 end
+function download_arzvehicles()
+	download_arzvehicles = true
+	downloadFileFromUrlToPath('https://raw.githubusercontent.com/MTGMODS/justice-helper/main/VehiclesArizona/vehicles.json', path_arzvehicles)
+end
+function getNameOfARZVehicleModel(id)
+	if doesFileExist(path_arzvehicles) then
+		if #arzvehicles ~= 0 then
+			for _, vehicle in ipairs(arzvehicles) do
+				if vehicle.model_id == id then
+					sampAddChatMessage("[Justice Helper] {ffffff}Самый ближайший т/с к вам это " .. vehicle.name ..  " [ID " .. id .. "].", message_color)
+					return vehicle.name
+				end
+			end
+		else
+			sampAddChatMessage('[Justice Helper] {ffffff}Не удалось получить модель т/с с ID ' .. id .. "! Причина: ошибка Инициализации VehiclesArizona.json")
+			load_arzvehicles()
+			return ''
+		end
+	else
+		sampAddChatMessage('[Justice Helper] {ffffff}Не удалось получить модель т/с с ID ' .. id .. "! Причина: отсуствует файл VehiclesArizona.json")
+		download_arzvehicles()
+		return ''
+	end
 
+
+
+	-- local file_path
+	-- if isMonetLoader() then
+	-- 	file_path = getGameDirectory() .. "\\data\\vehicles.ide"
+	-- else
+	-- 	file_path = getGameDirectory() .. "\\arizona\\vehicles.ide"
+	-- end
+    -- local file = io.open(file_path, "r")
+    -- if not file then
+	-- 	sampAddChatMessage("[Justice Helper] {ffffff}Не удалось открыть файл по пути: " .. file_path)
+    --     return ''
+    -- end
+    -- local modelName = ''
+    -- for line in file:lines() do
+    --     local fields = {}
+    --     for field in line:gmatch("[^,%s]+") do
+    --         table.insert(fields, field)
+    --     end
+    --     if tonumber(fields[1]) == id then
+    --         modelName = fields[5]
+    --         break
+    --     end
+    -- end
+    -- file:close()
+	-- if modelName == '' then
+	-- 	sampAddChatMessage("[Justice Helper] {ffffff}Не удалось получить модель т/с с ID " .. id .. '!', message_color)
+	-- else
+	-- 	sampAddChatMessage("[Justice Helper] {ffffff}Самый ближайший т/с к вам это " .. modelName ..  " [ID " .. id .. "].", message_color)
+	-- end
+    -- return modelName
+end
 function kvadrat()
     local KV = {
         [1] = "А",
@@ -2185,6 +2297,10 @@ function downloadFileFromUrlToPath(url, path)
 					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов заверешна успешно!',  message_color)
 					download_smartpdd = false
 					load_smart_pdd()
+				elseif download_arzvehicles then
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка моделей кастом каров аризоны заверешена успешно!',  message_color)
+					download_arzvehicles = false
+					load_arzvehicles()
 				end
 			elseif type == "error" then
 				sampAddChatMessage('[Justice Helper] {ffffff}Ошибка загрузки: ' .. pos,  message_color)
@@ -2205,6 +2321,10 @@ function downloadFileFromUrlToPath(url, path)
 					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов заверешна успешно!',  message_color)
 					download_smartpdd = false
 					load_smart_pdd()
+				elseif download_arzvehicles then
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка моделей кастом каров аризоны заверешена успешно!',  message_color)
+					download_arzvehicles = false
+					load_arzvehicles()
 				end
 			end
 		end)
@@ -2971,13 +3091,13 @@ imgui.OnFrame(
 					if settings.general.use_info_menu then
 						if imgui.CenterColumnSmallButton(u8'Отключить##info_menu') then
 							settings.general.use_info_menu = false
-							InformationWindiw[0] = false
+							InformationWindow[0] = false
 							save_settings()
 						end
 						else
 						if imgui.CenterColumnSmallButton(u8'Включить##info_menu') then
 							settings.general.use_info_menu = true
-							InformationWindiw[0] = true
+							InformationWindow[0] = true
 							save_settings()
 						end
 					end
@@ -4776,40 +4896,44 @@ imgui.OnFrame(
     end
 )
 
-imgui.OnFrame(
-    function() return FastPieMenu[0] end,
-    function(player)
-		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		--imgui.SetNextWindowSize(imgui.ImVec2(290 * MONET_DPI_SCALE, 415 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
-		imgui.Begin(fa.USER_INJURED..' '..sampGetPlayerNickname(player_id)..' ['..player_id.. '##FastPieMenu', FastPieMenu, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBackground  + imgui.WindowFlags.NoTitleBar )
+
+-- local pie = require("imgui_piemenu")
+-- player_id = 293
+-- FastPieMenu[0] = true
+-- imgui.OnFrame(
+--     function() return FastPieMenu[0] end,
+--     function(player)
+-- 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+-- 		--imgui.SetNextWindowSize(imgui.ImVec2(290 * MONET_DPI_SCALE, 415 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
+-- 		imgui.Begin(fa.USER_INJURED..' '..sampGetPlayerNickname(player_id)..' ['..player_id.. '##FastPieMenu', FastPieMenu, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoBackground  + imgui.WindowFlags.NoTitleBar )
 		
-		if imgui.IsMouseClicked(1) then
-			imgui.OpenPopup('PieMenu')
-		  end
+-- 		if imgui.IsMouseClicked(1) then
+-- 			imgui.OpenPopup('PieMenu')
+-- 		  end
 
-		if pie.BeginPiePopup('PieMenu', 1) then
-			if pie.PieMenuItem('Test1') then end
-		  if pie.PieMenuItem('Test2') then end
-			--if pie.PieMenuItem('Test5') then end
-			if pie.PieMenuItem('Test3', false) then 
-				sampSendChat('кхм')
-			end
-			if pie.BeginPieMenu('Sub') then
-			  if pie.BeginPieMenu('Sub sub\nmenu') then
-				if pie.PieMenuItem('SubSub') then end
-				if pie.PieMenuItem('SubSub2') then end
-				pie.EndPieMenu()
-			  end
-			  if pie.PieMenuItem('TestSub') then end
-			  if pie.PieMenuItem('TestSub2') then end
-			 pie.EndPieMenu()
-			end
-			pie.EndPiePopup()
-		  end
+-- 		if pie.BeginPiePopup('PieMenu', 1) then
+-- 			if pie.PieMenuItem('Test1') then end
+-- 		  if pie.PieMenuItem('Test2') then end
+-- 			--if pie.PieMenuItem('Test5') then end
+-- 			if pie.PieMenuItem('Test3', false) then 
+-- 				sampSendChat('кхм')
+-- 			end
+-- 			if pie.BeginPieMenu('Sub') then
+-- 			  if pie.BeginPieMenu('Sub sub\nmenu') then
+-- 				if pie.PieMenuItem('SubSub') then end
+-- 				if pie.PieMenuItem('SubSub2') then end
+-- 				pie.EndPieMenu()
+-- 			  end
+-- 			  if pie.PieMenuItem('TestSub') then end
+-- 			  if pie.PieMenuItem('TestSub2') then end
+-- 			 pie.EndPieMenu()
+-- 			end
+-- 			pie.EndPiePopup()
+-- 		  end
 
-		imgui.End()
-    end
-)
+-- 		imgui.End()
+--     end
+-- )
 
 imgui.OnFrame(
     function() return LeaderFastMenu[0] end,
@@ -5000,7 +5124,7 @@ imgui.OnFrame(
 )
 
 imgui.OnFrame(
-    function() return InformationWindiw[0] end,
+    function() return InformationWindow[0] end,
     function(player)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 8, sizeY / 1.7), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.SetNextWindowSize(imgui.ImVec2(225 * MONET_DPI_SCALE, 113 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
@@ -5674,7 +5798,7 @@ function main()
 			sampSendChat('/stats')
 		end
 		if settings.general.use_info_menu then
-			InformationWindiw[0] = true
+			InformationWindow[0] = true
 		end	
 		check_update()
 	end
