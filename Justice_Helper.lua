@@ -587,6 +587,7 @@ local binder_tags_text = [[
 {get_city} - Получить текущий город
 {get_square} - Получить текущий квадрат
 {get_area} - Получить текущий район
+{get_storecar_model} - Получить модель ближайшего к вам авто с водителем
 
 {get_nick({arg_id})} - получить Никнейм из аргумента ID игрока
 {get_rp_nick({arg_id})} - получить Никнейм без символа _ из аргумента ID игрока
@@ -2258,15 +2259,15 @@ function downloadFileFromUrlToPath(url, path)
 					reload_script = true
 					thisScript():unload()
 				elseif download_smartuk then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи розыска заверешна успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи розыска для ' .. getARZServerNumber() ..  ' сервера заверешна успешно!',  message_color)
 					download_smartuk = false
 					load_smart_uk()
 				elseif download_smartpdd then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов заверешна успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов для ' .. getARZServerNumber() ..  ' сервера заверешна успешно!',  message_color)
 					download_smartpdd = false
 					load_smart_pdd()
 				elseif download_arzvehicles then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка моделей кастом каров аризоны заверешена успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка списка моделей кастом каров аризоны заверешена успешно!',  message_color)
 					download_arzvehicles = false
 					load_arzvehicles()
 				end
@@ -2282,15 +2283,15 @@ function downloadFileFromUrlToPath(url, path)
 					reload_script = true
 					thisScript():unload()
 				elseif download_smartuk then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи розыска заверешна успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи розыска для ' .. getARZServerNumber() ..  ' сервера заверешна успешно!',  message_color)
 					download_smartuk = false
 					load_smart_uk()
 				elseif download_smartpdd then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов заверешна успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов для ' .. getARZServerNumber() ..  ' сервера заверешна успешно!',  message_color)
 					download_smartpdd = false
 					load_smart_pdd()
 				elseif download_arzvehicles then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка моделей кастом каров аризоны заверешена успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка списка моделей кастом каров аризоны заверешена успешно!',  message_color)
 					download_arzvehicles = false
 					load_arzvehicles()
 				end
