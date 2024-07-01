@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('Cross-platform script helper for Ministry of Justice (FBI and Police) and Ministry of Defense')
 script_author("MTG MODS")
-script_version("Beta 4.4")
+script_version("Beta 4.5")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -280,7 +280,8 @@ local commands = {
 	commands = {
 		{ cmd = 'mb' , description = 'Открыть список сотрудников в сети' , text = '{open_mimgui_members}', arg = '' , enable = true , waiting = '1.200' },
 		{ cmd = 'dep' , description = 'Открыть меню рации депортамента' , text = '{show_deportament_menu}', arg = '' , enable = true , waiting = '1.200' },
-		{ cmd = 'zd' , description = 'Привествие игрока' , text = 'Здраствуйте, я {my_ru_nick} - {fraction_rank} {fraction_tag}&Чем я могу Вам помочь?', arg = '{arg_id}' , enable = true , waiting = '1.200' },
+		{ cmd = '55', description = 'Проведение 10-55', text = '/r {my_doklad_nick} на CONTROL. Провожу 10-55 в районе {get_area} ({get_square}), СODE4.&/m Водитель{get_storecar_model}, уменьшите скорость и прижмитесь к обочине.&/m После остановки заглушите двигатель, держите руки на руле, и не выходите из своего т/с.&/m В случае неподчинения вы будете обьявлены в розыск, и по вам будет открыт огонь!', arg = '', enable = true, waiting = '1.200'},
+		{ cmd = '66', description = 'Проведение 10-66', text = '/r {my_doklad_nick} на CONTROL. Провожу 10-66 в районе {get_area} ({get_square}), СODE3!&/m Водитель{get_storecar_model}, немедленно прижмитесь к обочине и заглушите двигатель!&/m В случае неподчинения вы будете обьявлены в розыск, и по вам будет открыт огонь!', arg = '', enable = true, waiting = '1.200'},
 		{ cmd = 'take' , description = 'Изьятие предметов игрока' , text = '/do В подсумке находиться небольшой зип-пакет.&/me достаёт из подсумка зип-пакет и отрывает его&/me кладёт в зип-пакет изьятые предметы задержанного человека&/take {arg_id}&/do Изьятые предметы в зип-пакете.&/todo Отлично*убирая зип-пакет в подсумок', arg = '{arg_id}' , enable = true , waiting = '1.200' },
         { cmd = 'cure' , description = 'Поднять игрока из стадии' ,  text = '/me наклоняется над человеком, затем прощупывает пульс на сонной артерии&/cure {arg_id}&/do Пульс отсутствует.&/me начинает делать человеку непрямой массаж сердца, время от времени проверяя пульс&/do Спустя несколько минут сердце человека началось биться.&/do Человек пришел в сознание.&/todo Отлично*улыбаясь' , arg = '{arg_id}' , enable = true , waiting = '1.200'  },
 		{ cmd = 'time' , description = 'Посмотреть время' ,  text = '/me взглянул{sex} на свои часики и посмотрел{sex} время&/time&/do На часах видно время {get_time}.' , arg = '' , enable = true, waiting = '1.200'  },
@@ -541,9 +542,9 @@ local tagReplacements = {
 		}
 		return city[getCityPlayerIsIn(PLAYER_PED)]
 	end,
-	get_storecar_name = function ()
+	get_storecar_model = function ()
 		local closest_car = nil
-		local closest_distance = 50
+		local closest_distance = 75
 		local my_pos = {getCharCoordinates(PLAYER_PED)}
 		local my_car
 		if isCharInAnyCar(PLAYER_PED) then
@@ -564,10 +565,10 @@ local tagReplacements = {
 		if closest_car then
 			return " " .. getNameOfARZVehicleModel(getCarModel(closest_car))
 		else
-			sampAddChatMessage("[Justice Helper] {ffffff}Не удалось получить данные про ближайший т/с! Возможно слишком большое расстояние.", 0x009EFF)
+			sampAddChatMessage("[Justice Helper] {ffffff}Не удалось получить модель ближайшего т/с!", 0x009EFF)
 			return ''
 		end
-	end
+	end,
 }
 local binder_tags_text = [[
 {my_id} - Ваш ID
@@ -842,9 +843,11 @@ function register_command(chat_cmd, cmd_arg, cmd_text, cmd_waiting)
 							return 
 						end
 						for tag, replacement in pairs(tagReplacements) do
-							local success, result = pcall(string.gsub, line, "{" .. tag .. "}", replacement())
-							if success then
-								line = result
+							if line:find("{" .. tag .. "}") then
+                                local success, result = pcall(string.gsub, line, "{" .. tag .. "}", replacement())
+                                if success then
+                                    line = result
+                                end
                             end
 						end
 						if line == '{lmenu_vc_vize}' then
@@ -1070,6 +1073,7 @@ function initialize_commands()
 				play_error_sound()
 			end
 		else
+			sampAddChatMessage("[Justice Helper] {ffffff}Вы можете использовать просто команду /wanted без аргументов, чтобы сразу открыть общий список.", message_color)
 			sampSendChat('/wanted ' .. arg)
 		end
 	end)
@@ -1582,62 +1586,27 @@ for id, weapon in pairs(weapons.names) do
 		gunPartOff[id] = rpTakeNames[rpTake[id]][2]
 	end
 end
-function download_arzvehicle_json()
-	download_arzvehicles = true
-	downloadFileFromUrlToPath('https://raw.githubusercontent.com/MTGMODS/justice-helper/main/VehiclesArizona/vehicles.json', path_arzvehicles)
-end
 function getNameOfARZVehicleModel(id)
 	if doesFileExist(path_arzvehicles) then
 		if #arzvehicles ~= 0 then
 			for _, vehicle in ipairs(arzvehicles) do
 				if vehicle.model_id == id then
-					sampAddChatMessage("[Justice Helper] {ffffff}Самый ближайший т/с к вам это " .. vehicle.name ..  " [ID " .. id .. "].", message_color)
+					--sampAddChatMessage("[Justice Helper] {ffffff}Самый ближайший т/с к вам это " .. vehicle.name ..  " [ID " .. id .. "].", message_color)
 					return vehicle.name
 				end
 			end
 		else
-			sampAddChatMessage('[Justice Helper] {ffffff}Не удалось получить модель т/с с ID ' .. id .. "! Причина: ошибка Инициализации VehiclesArizona.json", message_color)
+			sampAddChatMessage('[Justice Helper] {ffffff}Не удалось получить модель т/с с ID ' .. id .. "! Причина: ошибка инициализации VehiclesArizona.json", message_color)
 			load_arzvehicles()
 			return ''
 		end
 	else
 		sampAddChatMessage('[Justice Helper] {ffffff}Не удалось получить модель т/с с ID ' .. id .. "! Причина: отсуствует файл VehiclesArizona.json", message_color)
 		sampAddChatMessage('[Justice Helper] {ffffff}Пытаюсь скачать файл VehiclesArizona.json в папку ' .. path_arzvehicles, message_color)
-		download_arzvehicle_json()
+		download_arzvehicles = true
+		downloadFileFromUrlToPath('https://raw.githubusercontent.com/MTGMODS/justice-helper/main/VehiclesArizona/VehiclesArizona.json', path_arzvehicles)
 		return ''
 	end
-
-
-
-	-- local file_path
-	-- if isMonetLoader() then
-	-- 	file_path = getGameDirectory() .. "\\data\\vehicles.ide"
-	-- else
-	-- 	file_path = getGameDirectory() .. "\\arizona\\vehicles.ide"
-	-- end
-    -- local file = io.open(file_path, "r")
-    -- if not file then
-	-- 	sampAddChatMessage("[Justice Helper] {ffffff}Не удалось открыть файл по пути: " .. file_path)
-    --     return ''
-    -- end
-    -- local modelName = ''
-    -- for line in file:lines() do
-    --     local fields = {}
-    --     for field in line:gmatch("[^,%s]+") do
-    --         table.insert(fields, field)
-    --     end
-    --     if tonumber(fields[1]) == id then
-    --         modelName = fields[5]
-    --         break
-    --     end
-    -- end
-    -- file:close()
-	-- if modelName == '' then
-	-- 	sampAddChatMessage("[Justice Helper] {ffffff}Не удалось получить модель т/с с ID " .. id .. '!', message_color)
-	-- else
-	-- 	sampAddChatMessage("[Justice Helper] {ffffff}Самый ближайший т/с к вам это " .. modelName ..  " [ID " .. id .. "].", message_color)
-	-- end
-    -- return modelName
 end
 function kvadrat()
     local KV = {
@@ -2329,7 +2298,6 @@ function downloadFileFromUrlToPath(url, path)
 		end)
 	end
 end
-
 function sampev.onShowTextDraw(id, data)
 	if data.text:find('~n~~n~~n~~n~~n~~n~~n~~n~~w~Style: ~r~Sport!') then
 		sampAddChatMessage('[Justice Helper] {ffffff}Активирован режим езды Sport!', message_color)
@@ -2353,14 +2321,13 @@ end
 function sampev.onSendTakeDamage(playerId,damage,weapon)
 	playerId2 = playerId1
 	playerId1 = playerId
-	if isParamSampID(playerId) and playerId1 ~= playerId2 then
+	if isParamSampID(playerId) and playerId1 ~= playerId2 and weapon then
 		local weapon_name = weapons.get_name(weapon)
 		if weapon_name then
 			sampAddChatMessage('[Justice Helper] {ffffff}Игрок ' .. sampGetPlayerNickname(playerId) .. '[' .. playerId .. '] напал на вас используя ' .. weapon_name .. '!', message_color)
-			table.insert(enemy, 'Игрок ' .. sampGetPlayerNickname(playerId) .. '[' .. playerId .. '] напал на вас используя ' .. weapon_name .. '!')
-		else
-			sampAddChatMessage('[Justice Helper] {ffffff}Игрок ' .. sampGetPlayerNickname(playerId) .. '[' .. playerId .. '] напал на вас используя неизвестное оружие!', message_color)
-			table.insert(enemy, 'Игрок ' .. sampGetPlayerNickname(playerId) .. '[' .. playerId .. '] напал на вас!')
+			sampSendChat('/n Помогите, меня ДМмит игрок '.. sampGetPlayerNickname(playerId) .. '[' .. playerId .. '], он использует ' .. weapon_name)
+			-- table.insert(enemy, 'Игрок ' .. sampGetPlayerNickname(playerId) .. '[' .. playerId .. '] напал на вас используя ' .. weapon_name .. '!')
+			
 		end
 	end
 end
@@ -2793,6 +2760,7 @@ function onReceivePacket(id, bs)
 			if raknetBitStreamReadInt8(bs) == 17 then
 				raknetBitStreamIgnoreBits(bs, 32)
 				local cmd2 = raknetBitStreamReadString(bs, raknetBitStreamReadInt32(bs))
+				--sampAddChatMessage(cmd2,-1)
 				-- автоматический клик для ПК "Крушение самолета" и "Авария на шосе" (взято из кода Chapo)
 				local view = string.match(cmd2, "^window.executeEvent%('event%.setActiveView', [`']%[[\"%s]?(.-)[\"%s]?%][`']%);$")
 				if view ~= nil then
@@ -2976,16 +2944,15 @@ imgui.OnFrame(
 				imgui.EndChild()
 				end
 				if imgui.BeginChild('##2', imgui.ImVec2(589 * MONET_DPI_SCALE, 53 * MONET_DPI_SCALE), true) then
-					imgui.CenterText(fa.ROBOT .. u8' Асистент патруля')
+					imgui.CenterText(fa.ROBOT .. u8' Асистент')
 					imgui.Separator()
-					imgui.Columns(3)
-					imgui.CenterColumnText(u8"123")
-					imgui.SetColumnWidth(-1, 230 * MONET_DPI_SCALE)
+					imgui.Columns(2)
+					imgui.CenterColumnText(u8("Ваш незаменимый помощник, например для патруля, либо других действий"))
+					imgui.SetColumnWidth(-1, 480 * MONET_DPI_SCALE)
 					imgui.NextColumn()
-					imgui.CenterColumnText(u8("В разработке..."))
-					imgui.SetColumnWidth(-1, 250 * MONET_DPI_SCALE)
-					imgui.NextColumn()
-					imgui.CenterColumnText(u8("пон?"))
+					if imgui.CenterColumnSmallButton(u8'Управление') then
+						sampAddChatMessage('[Justice Helper] {ffffff}Асистент ещё в разработке!', message_color)
+					end
 					imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
 					imgui.Columns(1)
 				imgui.EndChild()
@@ -3588,10 +3555,10 @@ imgui.OnFrame(
 				imgui.EndTabItem()
 			end
 			if imgui.BeginTabItem(fa.STAR .. u8' Розыск и штрафы') then 
-				if imgui.BeginChild('##smartuk', imgui.ImVec2(292 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true) then
+				if imgui.BeginChild('##smartuk', imgui.ImVec2(292 * MONET_DPI_SCALE, 340 * MONET_DPI_SCALE), true) then
 					imgui.CenterText(fa.STAR .. u8' Система умного розыска')
 					imgui.Separator()
-					imgui.SetCursorPosY(135 * MONET_DPI_SCALE)
+					imgui.SetCursorPosY(100 * MONET_DPI_SCALE)
 					imgui.SetCursorPosX(105 * MONET_DPI_SCALE)
 					if imgui.Button(fa.DOWNLOAD .. u8' Загрузить ##smartuk') then
 						if getARZServerNumber() ~= 0 then
@@ -3637,9 +3604,11 @@ imgui.OnFrame(
 						imgui.EndPopup()
 					end
 					imgui.SetCursorPosX(80 * MONET_DPI_SCALE)
+					imgui.SetCursorPosY(170 * MONET_DPI_SCALE)
 					if imgui.Button(fa.PEN_TO_SQUARE .. u8' Отредактировать ##smartuk') then
 						imgui.OpenPopup(fa.STAR .. u8' Система умного розыска##smartuk')
 					end
+					imgui.SetCursorPosY(250 * MONET_DPI_SCALE)
 					imgui.CenterText(u8('Использование: /sum [ID игрока]'))
 					if imgui.BeginPopupModal(fa.STAR .. u8' Система умного розыска##smartuk', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize ) then
 						imgui.BeginChild('##smartukedit', imgui.ImVec2(589 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true)
@@ -3817,17 +3786,13 @@ imgui.OnFrame(
 						end
 						imgui.EndPopup()
 					end
-					imgui.SetCursorPosY(310 * MONET_DPI_SCALE)
-					imgui.Separator()
-					imgui.CenterText(u8'Предложения по изменению облачного УК:')
-					imgui.CenterText(u8'Отправляйте на Discord или BlastHack')
 					imgui.EndChild()
 				end
 				imgui.SameLine()
-				if imgui.BeginChild('##smartpdd', imgui.ImVec2(292 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true) then
+				if imgui.BeginChild('##smartpdd', imgui.ImVec2(292 * MONET_DPI_SCALE, 340 * MONET_DPI_SCALE), true) then
 					imgui.CenterText(fa.TICKET .. u8' Система умного штрафа')
 					imgui.Separator()
-					imgui.SetCursorPosY(135 * MONET_DPI_SCALE)
+					imgui.SetCursorPosY(105 * MONET_DPI_SCALE)
 					imgui.SetCursorPosX(105 * MONET_DPI_SCALE)
 					if imgui.Button(fa.DOWNLOAD .. u8' Загрузить ##smartpdd') then
 						if getARZServerNumber() ~= 0 then
@@ -3873,6 +3838,7 @@ imgui.OnFrame(
 						imgui.EndPopup()
 					end
 					imgui.SetCursorPosX(80 * MONET_DPI_SCALE)
+					imgui.SetCursorPosY(170 * MONET_DPI_SCALE)
 					if imgui.Button(fa.PEN_TO_SQUARE .. u8' Отредактировать ##smartpdd') then
 						imgui.OpenPopup(fa.TICKET .. u8' Система умных штрафов##smartpdd')
 					end
@@ -4052,13 +4018,11 @@ imgui.OnFrame(
 						end
 						imgui.EndPopup()
 					end
+					imgui.SetCursorPosY(250 * MONET_DPI_SCALE)
 					imgui.CenterText(u8('Использование: /tsm [ID игрока]'))
-					imgui.SetCursorPosY(310 * MONET_DPI_SCALE)
-					imgui.Separator()
-					imgui.CenterText(u8'Предложения по изменению облачного ПДД:')
-					imgui.CenterText(u8'Отправляйте на Discord или BlastHack')
 					imgui.EndChild()
 				end
+				imgui.CenterText(u8'Предложения по изменению облачного розыска/штрафов отправляйте в Discord или BlastHack.')
 			imgui.EndTabItem()
 			end
 			if imgui.BeginTabItem(fa.FILE_PEN..u8' Заметки') then 
@@ -4185,8 +4149,8 @@ imgui.OnFrame(
 				imgui.Separator()
 				imgui.Text(fa.HEADSET..u8" Тех.поддержка по хелперу:")
 				imgui.SameLine()
-				if imgui.SmallButton('https://discord.com/invite/qBPEYjfNhv') then
-					openLink('https://discord.com/invite/qBPEYjfNhv')
+				if imgui.SmallButton('https://discord.gg/mtg-mods-samp-1097643847774908526') then
+					openLink('https://discord.gg/mtg-mods-samp-1097643847774908526')
 				end
 				imgui.Separator()
 				imgui.Text(fa.GLOBE..u8" Тема хелпера на форуме BlastHack:")
@@ -5144,7 +5108,7 @@ imgui.OnFrame(
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(fa.CIRCLE_INFO .. u8" Оповещение##need_update_helper", _, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  )
 		imgui.CenterText(u8'У вас сейчас установлена версия хелпера ' .. u8(tostring(thisScript().version)) .. ".")
-		imgui.CenterText(u8'В базе данных найдена новая версия хелпера - ' .. u8(updateVer) .. ".")
+		imgui.CenterText(u8'В базе данных найдена версия хелпера - ' .. u8(updateVer) .. ".")
 		imgui.CenterText(u8'Рекомендуется обновиться, дабы иметь весь актуальный функционал!')
 		imgui.Separator()
 		imgui.CenterText(u8('Что нового в версии ') .. u8(updateVer) .. ':')
@@ -5801,7 +5765,7 @@ function main()
 		end	
 		check_update()
 	end
-	
+
 	while true do
 		wait(0)
 
