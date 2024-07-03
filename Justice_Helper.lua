@@ -110,7 +110,7 @@ imgui.OnFrame(
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.Begin(fa.BUILDING_SHIELD .. " Justice Helper", MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize  + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.AlwaysAutoResize )
 	imgui.Text(fa.CIRCLE_INFO .. u8" Reinstall helper from Discord server!")
-				if imgui.Button('Open Discord server') then			openLink('https://discord.gg/mtg-mods-samp-1097643847774908526')
+				if imgui.Button('Open Discord server MTG MODS') then			openLink('https://discord.gg/mtg-mods-samp-1097643847774908526')
 				end
 		imgui.End()
     end
