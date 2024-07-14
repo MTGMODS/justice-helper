@@ -3508,5 +3508,80 @@
         "model_id": 15568,
         "name": "Porsche 911 GT3RS 2024",
         "server_id": 1101
+    },
+    {
+        "model_id": 14221,
+        "name": "Rezvani Vengeance",
+        "server_id": 1102
+    },
+    {
+        "model_id": 14242,
+        "name": "Peterbilt 359",
+        "server_id": 1103
+    },
+    {
+        "model_id": 14244,
+        "name": "Nissan 240Z S30",
+        "server_id": 1104
+    },
+    {
+        "model_id": 14245,
+        "name": "Bugatti Centodieci",
+        "server_id": 1105
+    },
+    {
+        "model_id": 14246,
+        "name": "Cadillac Escalade 2023",
+        "server_id": 1106
+    },
+    {
+        "model_id": 14247,
+        "name": "Ferrari Purosangue",
+        "server_id": 1107
+    },
+    {
+        "model_id": 14248,
+        "name": "Lamborghini Huracan LP 610 4",
+        "server_id": 1108
+    },
+    {
+        "model_id": 14249,
+        "name": "Lamborghini Huracan Sterrato Off-Road",
+        "server_id": 1109
+    },
+    {
+        "model_id": 14250,
+        "name": "Lamborghini Urus Off-Road",
+        "server_id": 1110
+    },
+    {
+        "model_id": 14251,
+        "name": "Ferrari SF90 Off-Road",
+        "server_id": 1111
+    },
+    {
+        "model_id": 14252,
+        "name": "Plymouth GTX Custom",
+        "server_id": 1112
+    },
+    {
+        "model_id": 14253,
+        "name": "Shelby Cobra 427 Custom",
+        "server_id": 1113
+    },
+    {
+        "model_id": 14254,
+        "name": "Mitsubishi Eclipse 1995",
+        "server_id": 1114
+    },
+    {
+        "model_id": 14255,
+        "name": "Cadillac Escalade Larte Design",
+        "server_id": 1115
+    },
+    {
+        "model_id": 14281,
+        "name": "Skate Transparent",
+        "server_id": 1116
     }
 ]
