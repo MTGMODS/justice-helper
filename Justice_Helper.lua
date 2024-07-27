@@ -16,17 +16,17 @@ local default_settings = {
 	general = {
 		version = thisScript().version,
 		accent_enable = true,
-		auto_mask = true,
+		auto_mask = false,
 		rp_chat = true,
         rp_gun = true,
 		auto_doklad_patrool = true,
-		auto_doklad_damage = true,
-		auto_doklad_arrest = true,
+		auto_doklad_damage = false,
+		auto_doklad_arrest = false,
 		auto_change_code_siren = true,
 		auto_update_wanteds = true,
 		auto_update_members = true,
-		auto_notify_payday = true,
-		auto_notify_port = true,
+		auto_notify_payday = false,
+		auto_notify_port = false,
 		auto_uval = false,
 		auto_clicker_situation = true,
 		use_form_su = false,
@@ -1196,36 +1196,36 @@ function initialize_commands()
 			play_error_sound()
 		end
 	end)
-	sampRegisterChatCommand("wanteds", function(arg)
-		if WantedWindow[0] then
-			WantedWindow[0] = false
-			sampAddChatMessage('[Justice Helper] {ffffff}Меню списка преступников закрыто!', message_color)
-		elseif not isActiveCommand then
-			lua_thread.create(function()
-				sampAddChatMessage('[Justice Helper] {ffffff}Начинаю сканирование /wanted [1-7], ожидайте...', message_color)
-				show_cef_notify('info', 'Justice Helper', "Сканирование /wanted...", 2500)
-				wanted_new = {}
-				check_wanted = true
-				for i = 7, 1, -1 do
-					sampSendChat('/wanted ' .. i)
-					wait(300)
-				end
-				check_wanted = false
-				if #wanted_new == 0 then
-					sampAddChatMessage('[Justice Helper] {ffffff}Сейчас на сервере нету игроков с розыском!', message_color)
-				else
-					sampAddChatMessage('[Justice Helper] {ffffff}Сканирование успешно заверешено, данные в меню будут обновляються каждые 3 секунды.', message_color)
-					sampAddChatMessage('[Justice Helper] {ffffff}ВНИМАНИЕ! Из-за постоянного обновления данных плохо работают диалоги и чат!', message_color)
-					sampAddChatMessage('[Justice Helper] {ffffff}Чтобы диалоги и чат работали стабильно, закройте меню списка преступников!', message_color)
-					wanted = wanted_new
-					WantedWindow[0] = true
-				end
-			end)
-		else
-			sampAddChatMessage('[Justice Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!', message_color)
-			play_error_sound()
-		end
-	end)
+	-- sampRegisterChatCommand("wanteds", function(arg)
+	-- 	if WantedWindow[0] then
+	-- 		WantedWindow[0] = false
+	-- 		sampAddChatMessage('[Justice Helper] {ffffff}Меню списка преступников закрыто!', message_color)
+	-- 	elseif not isActiveCommand then
+	-- 		lua_thread.create(function()
+	-- 			sampAddChatMessage('[Justice Helper] {ffffff}Начинаю сканирование /wanted [1-7], ожидайте...', message_color)
+	-- 			show_cef_notify('info', 'Justice Helper', "Сканирование /wanted...", 2500)
+	-- 			wanted_new = {}
+	-- 			check_wanted = true
+	-- 			for i = 7, 1, -1 do
+	-- 				sampSendChat('/wanted ' .. i)
+	-- 				wait(300)
+	-- 			end
+	-- 			check_wanted = false
+	-- 			if #wanted_new == 0 then
+	-- 				sampAddChatMessage('[Justice Helper] {ffffff}Сейчас на сервере нету игроков с розыском!', message_color)
+	-- 			else
+	-- 				sampAddChatMessage('[Justice Helper] {ffffff}Сканирование успешно заверешено, данные в меню будут обновляються каждые 3 секунды.', message_color)
+	-- 				sampAddChatMessage('[Justice Helper] {ffffff}ВНИМАНИЕ! Из-за постоянного обновления данных плохо работают диалоги и чат!', message_color)
+	-- 				sampAddChatMessage('[Justice Helper] {ffffff}Чтобы диалоги и чат работали стабильно, закройте меню списка преступников!', message_color)
+	-- 				wanted = wanted_new
+	-- 				WantedWindow[0] = true
+	-- 			end
+	-- 		end)
+	-- 	else
+	-- 		sampAddChatMessage('[Justice Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!', message_color)
+	-- 		play_error_sound()
+	-- 	end
+	-- end)
 	sampRegisterChatCommand("debug", function() debug_mode = not debug_mode end)
 	sampRegisterChatCommand("mask", function() 
 		if not isActiveCommand then
@@ -3126,8 +3126,9 @@ imgui.OnFrame(
 					imgui.SetColumnWidth(-1, 480 * MONET_DPI_SCALE)
 					imgui.NextColumn()
 					if imgui.CenterColumnSmallButton(u8'Управление') then
-						--sampAddChatMessage('[Justice Helper] {ffffff}Асистент ещё в разработке!', message_color)
-						imgui.OpenPopup(fa.ROBOT .. u8' Асистент для автоматизации некоторых ваших действий')
+						sampAddChatMessage('[Justice Helper] {ffffff}Асистент находиться в ЗБТ для VIP участников на нашем дс сервера!', message_color)
+						sampAddChatMessage('[Justice Helper] {ffffff}Эту роль можно получить за донат!', message_color)
+						--imgui.OpenPopup(fa.ROBOT .. u8' Асистент для автоматизации некоторых ваших действий')
 					end
 					if imgui.BeginPopupModal(fa.ROBOT .. u8' Асистент для автоматизации некоторых ваших действий', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize ) then
 						imgui.BeginChild('##ai', imgui.ImVec2(589 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true)
