@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of Justice (PD and FBI) ??and the Ministry of Defense (Army)')
 script_author("MTG MODS")
-script_version("1.0")
+script_version("1.1")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -19,7 +19,7 @@ local default_settings = {
 		auto_mask = false,
 		rp_chat = true,
         rp_gun = true,
-		auto_doklad_patrool = true,
+		auto_doklad_patrool = false,
 		auto_doklad_damage = false,
 		auto_doklad_arrest = false,
 		auto_change_code_siren = true,
@@ -171,10 +171,6 @@ function load_settings()
 							end
 						end
 					end
-					if tostring(settings.general.version) ~= tostring(thisScript().version) then 
-						settings.general.version = thisScript().version
-					end
-					save_settings()
 				else
 					print('[Justice Helper] Не удалось открыть файл с настройками, использую стандартные настройки!')
 				end
@@ -355,11 +351,11 @@ local commands = {
         { cmd = 'doc' , description = 'Запросить документы (FBI)' ,  text = 'Здраствуйте, я {fraction_rank} ФБР&/do Cлева на груди спец-жетон ФБР.&/me указывает пальцем на свой спец-жетон на груди&Прошу предъявить документ, удостоверяющий вашу личность.&/n {get_nick({arg_id})}, введите /showpass {my_id} или /showbadge {my_id}' , arg = '{arg_id}' , enable = false , waiting = '1.200'  },
         { cmd = 'ts' , description = 'Выписать штраф' ,  text = '/do Бланк протокола и ручка находяться в нагрудном кармане.&/me достаёт из нагрудного кармана бланк протокола и ручку.&/me вписывает в бланк данные нарушителя&/writeticket {arg_id} {arg2}&/do Бланк протокола заполнен.&/me передаёт бланк со штрафом нарушителю для дальнейшей оплаты' , arg = '{arg_id} {arg2}' , enable = true, waiting = '1.200'  },
         { cmd = 'pr' , description = 'Погоня' ,  text = '/pursuit {arg_id}' , arg = '{arg_id}' , enable = true, waiting = '1.200'  },
-        { cmd = 'su' , description = 'Выдать розыск' ,  text = '/me достаёт свой КПК и открывает базу данных преступников&/me вносит изменения в базу данных преступинков&/do Преступник занесён в базу данных преступников.&/su {arg_id} {arg2} {arg3}&/z {arg_id}' , arg = '{arg_id} {arg2} {arg3}' , enable = true, waiting = '1.200'  },
+        { cmd = 'su' , description = 'Выдать розыск' ,  text = '/me достаёт свой КПК и открывает базу данных преступников&/me вносит изменения в базу данных преступников&/do Преступник занесён в базу данных преступников.&/su {arg_id} {arg2} {arg3}&/z {arg_id}' , arg = '{arg_id} {arg2} {arg3}' , enable = true, waiting = '1.200'  },
         { cmd = 'fsu' , description = 'Запросить выдачу розыска' ,  text = '/do Рация на тактическом поясе.&/me достаёт рацию и связавается с диспетчером&/me передаёт диспетчеру запрос на внесение человека в базу данных преступников&/r {my_doklad_nick} на CONTROL.&/r Прошу обьявить в розыск {arg2} степени дело N{arg_id}. Причина: {arg3}' , arg = '{arg_id} {arg2} {arg3}' , enable = true, waiting = '1.200'  },
-		{ cmd = 'givefsu' , description = 'Выдача розыска по запросу офицера' ,  text = '/do Рация на тактическом поясе.&/me достаёт рацию и связавается с офицером для уточнения данных&/r 10-4, выдаю розыск по запросу офицера {get_rp_nick({arg_id})}!&/me достаёт свой КПК и открывает базу данных преступников&/me вносит изменения в базу данных преступинков&/do Преступник занесён в базу данных преступиков.&/su {get_form_su} (по запросу офицера {get_rp_nick({arg_id})})&' , arg = '{arg_id}' , enable = true, waiting = '1.200'  },
-		{ cmd = 'unsu' , description = 'Понизить розыск' ,  text = '/me достаёт свой КПК и открывает базу данных преступников&/me ищёт дело N{arg_id} и вносит изменения в базу данных преступинков&/unsu {arg_id} {arg2} {arg3}&/do Преступику понижен степень розыска.' , arg = '{arg_id} {arg2} {arg3}' , enable = true, waiting = '1.200'  },
-		{ cmd = 'clear' , description = 'Снять розыск' ,  text = '/me достаёт свой КПК и открывает базу данных преступников&/me ищёт дело N{arg_id} и вносит изменения в базу данных преступинков&/clear {arg_id}&/do Дело N{arg_id} больше не находится в списке разыскиваемых преступников.' , arg = '{arg_id}' , enable = true, waiting = '1.200'  },
+		{ cmd = 'givefsu' , description = 'Выдача розыска по запросу офицера' ,  text = '/do Рация на тактическом поясе.&/me достаёт рацию и связавается с офицером для уточнения данных&/r 10-4, выдаю розыск по запросу офицера {get_rp_nick({arg_id})}!&/me достаёт свой КПК и открывает базу данных преступников&/me вносит изменения в базу данных преступников&/do Преступник занесён в базу данных преступиков.&/su {get_form_su} (по запросу офицера {get_rp_nick({arg_id})})&' , arg = '{arg_id}' , enable = true, waiting = '1.200'  },
+		{ cmd = 'unsu' , description = 'Понизить розыск' ,  text = '/me достаёт свой КПК и открывает базу данных преступников&/me ищёт дело N{arg_id} и вносит изменения в базу данных преступников&/unsu {arg_id} {arg2} {arg3}&/do Преступику понижен степень розыска.' , arg = '{arg_id} {arg2} {arg3}' , enable = true, waiting = '1.200'  },
+		{ cmd = 'clear' , description = 'Снять розыск' ,  text = '/me достаёт свой КПК и открывает базу данных преступников&/me ищёт дело N{arg_id} и вносит изменения в базу данных преступников&/clear {arg_id}&/do Дело N{arg_id} больше не находится в списке разыскиваемых преступников.' , arg = '{arg_id}' , enable = true, waiting = '1.200'  },
         { cmd = 'cuff' , description = 'Надеть наручники' ,  text = '/do Наручники на тактическом поясе.&/me снимает наручники с пояса и надевает их на задержанного&/cuff {arg_id}&/do Задержанный в наручниках.' , arg = '{arg_id}' , enable = true , waiting = '1.200'},
         { cmd = 'uncuff' , description = 'Снять наручники' ,  text = '/do На тактическом поясе прикреплены ключи от наручников.&/me снимает с пояса ключ от наручников и вставляет их в наручники задержанного&/me прокручивает ключ в наручниках и снимает их с задержанного&&/uncuff {arg_id}&/do Наручники сняты с задержанного&/me кладёт ключ и наручники обратно на тактический пояс', arg = '{arg_id}', enable = true, waiting = '1.200'},
         { cmd = 'gtm' , description = 'Повести за собой' ,  text = '/me схватывает задержанного за руки и ведёт его за собой&/gotome {arg_id}&/do Задержанный идёт в конвое.', arg = '{arg_id}', enable = true, waiting = '1.200'},
@@ -480,12 +476,20 @@ if isMonetLoader() then
 	gta = ffi.load('GTASA') 
 	ffi.cdef[[ void _Z12AND_OpenLinkPKc(const char* link); ]] -- функция для открытия ссылок
 end
-if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
+if MONET_DPI_SCALE == nil then 
+	-- local base_width = 1366
+	-- local base_height = 768
+	-- local current_width, current_height = getScreenResolution()
+	-- local width_scale = current_width / base_width
+	-- local height_scale = current_height / base_height
+	-- MONET_DPI_SCALE = (width_scale + height_scale) / 2
+	MONET_DPI_SCALE = 1.0
+end
 ---------------------------------------------- Mimgui -----------------------------------------------------
 local imgui = require('mimgui')
 local fa = require('fAwesome6_solid')
 local sizeX, sizeY = getScreenResolution()
-
+print(getScreenResolution())
 local MainWindow = imgui.new.bool()
 local checkboxone = imgui.new.bool(false)
 local checkbox_accent_enable = imgui.new.bool(settings.general.accent_enable or false)
@@ -662,9 +666,26 @@ local tagReplacements = {
 			end
 		end
 		if closest_car then
-			return " " .. getNameOfARZVehicleModel(getCarModel(closest_car))
+			local clr1, clr2 = getCarColours(closest_car)
+			local CarColorName
+			if clr1 == clr2 then
+				CarColorName = colorNames[clr1] .. " цвета" or ""
+			else
+				CarColorName = colorNames[clr1] .. '-' .. colorNames[clr2] .. " цвета" or ""
+			end
+			function getVehPlateNumberByCarHandle(car)
+				for shit, plate in pairs(cache) do 
+					result, veh = sampGetCarHandleBySampVehicleId(plate.carID)
+					if result and veh == car then
+						return ' (' .. plate.number .. ') '
+					end
+				end
+				return ' '
+				
+			end
+			return " " .. getNameOfARZVehicleModel(getCarModel(closest_car)) .. getVehPlateNumberByCarHandle(closest_car) .. CarColorName
 		else
-			sampAddChatMessage("[Justice Helper] {ffffff}Не удалось получить модель ближайшего транспорта!", 0x009EFF)
+			sampAddChatMessage("[Justice Helper] {ffffff}Не удалось получить модель ближайшего транспорта с водителем!", 0x009EFF)
 			return ''
 		end
 	end,
@@ -691,6 +712,9 @@ local tagReplacements = {
 		if isCharInAnyCar(PLAYER_PED) then
 			local car = storeCarCharIsInNoSave(PLAYER_PED)
 			local success, passengers = getNumberOfPassengers(car)
+			if isMonetLoader() and success and passengers == nil then
+				passengers = success
+			end
 			if success and passengers and tonumber(passengers) > 0 then
 				local my_passengers = {}
 				for k, v in ipairs(getAllChars()) do
@@ -717,18 +741,18 @@ local tagReplacements = {
 					end
 					return units
 				else
-					--sampAddChatMessage('[Justice Helper] В вашем авто нету ваших напарников!')
+					sampAddChatMessage('[Justice Helper] В вашем авто нету ваших напарников12345678!', -1)
 					return 'Нету'
 				end
 			else
-				--sampAddChatMessage('[Justice Helper] В вашем авто нету ваших напарников!')
 				return 'Нету'
 			end
 		else
-			--sampAddChatMessage('[Justice Helper] Вы не находитесь в авто, невозможно получить ваших напарников!')
+			--sampAddChatMessage('[Justice Helper] Вы не находитесь в авто, невозможно получить ваших напарников!', -1)
 			return 'Нету'
 		end
 	end
+	
 }
 local binder_tags_text = [[
 {my_id} - Ваш ID
@@ -1061,7 +1085,7 @@ function register_command(chat_cmd, cmd_arg, cmd_text, cmd_waiting)
 						else
 							if line_index ~= 1 then wait(cmd_waiting * 1000) end
 							sampSendChat(line)
-							if debug_mode then sampAddChatMessage('[Justice Helper DEBUG] {ffffff}Отправляю сообщение: ' .. line, message_color) end
+							if debug_mode then sampAddChatMessage('[Justice Helper DEBUG] {ffffff}SEND: ' .. line, message_color) end
 						end
 					end
 					isActiveCommand = false
@@ -3126,63 +3150,8 @@ imgui.OnFrame(
 					imgui.SetColumnWidth(-1, 480 * MONET_DPI_SCALE)
 					imgui.NextColumn()
 					if imgui.CenterColumnSmallButton(u8'Управление') then
-						sampAddChatMessage('[Justice Helper] {ffffff}Асистент находиться в ЗБТ для VIP участников на нашем дс сервера!', message_color)
-						sampAddChatMessage('[Justice Helper] {ffffff}Эту роль можно получить за донат!', message_color)
-						--imgui.OpenPopup(fa.ROBOT .. u8' Асистент для автоматизации некоторых ваших действий')
-					end
-					if imgui.BeginPopupModal(fa.ROBOT .. u8' Асистент для автоматизации некоторых ваших действий', _, imgui.WindowFlags.NoCollapse  + imgui.WindowFlags.NoResize ) then
-						imgui.BeginChild('##ai', imgui.ImVec2(589 * MONET_DPI_SCALE, 360 * MONET_DPI_SCALE), true)
-						if imgui.Checkbox(u8(' Надевать новую маску (/mask) когда время действия прошлой маски закончилось'), checkbox_automask) then
-							settings.general.auto_mask = checkbox_automask[0]
-							save_settings()
-						end
-						if imgui.Checkbox(u8(' Когда кто-то наносит вам урон любым способом делать доклад в рацию про CODE 0'), checkbox_autodoklad_damage) then
-							settings.general.auto_doklad_damage = checkbox_autodoklad_damage[0]
-							save_settings()
-						end
-						if imgui.Checkbox(u8(' При патруле (/patrool) каждые 10 мин делать доклад в рацию'), checkbox_patrool_autodoklad) then
-							settings.general.auto_doklad_patrool = checkbox_patrool_autodoklad[0]
-							save_settings()
-						end
-						if imgui.Checkbox(u8(' При вкл/выкл мигалок изменить ситуационный код на CODE 3 / CODE 4'), checkbox_change_code_siren) then
-							settings.general.auto_change_code_siren = checkbox_change_code_siren[0]
-							save_settings()
-						end
-						if imgui.Checkbox(u8(' После ареста (/arrest) делать доклад в рацию про заверешнный арест'), checkbox_autodoklad_arrest) then
-							settings.general.auto_doklad_arrest = checkbox_autodoklad_arrest[0]
-							save_settings()
-						end
-						if imgui.Checkbox(u8(' Напоминать в чате про мероприятие "Порт" за 5 минут до начала'), checkbox_notify_port) then
-							settings.general.auto_notify_port = checkbox_notify_port[0]
-							save_settings()
-						end
-						if imgui.Checkbox(u8(' Напоминать в чате про PAYDAY за 5 минут до него'), checkbox_notify_payday) then
-							settings.general.auto_notify_payday = checkbox_notify_payday[0]
-							save_settings()
-						end
-						if imgui.Checkbox(u8(' Обновлять список сотрудников в меню /mb каждые 3 секунды'), checkbox_update_members) then
-							settings.general.auto_update_members = checkbox_update_members[0]
-							save_settings()
-						end
-						if imgui.Checkbox(u8(' Обновлять список преступников в меню /wanteds каждые 3 секунды'), checkbox_update_wanteds) then
-							settings.general.auto_update_wanteds = checkbox_update_wanteds[0]
-							save_settings()
-						end
-						if imgui.Checkbox(u8(' Автокликер в Случайных Ситуациях (сбор камней)'), checkbox_auto_clicker) then
-							settings.general.auto_clicker_situation = checkbox_auto_clicker[0]
-							save_settings()
-						end
-						if imgui.Checkbox(u8(' '),checkboxone) then
-
-						end
-						if imgui.Checkbox(u8(' '),checkboxone) then
-
-						end
-						imgui.EndChild()
-						if imgui.Button(fa.CIRCLE_XMARK .. u8" Закрыть", imgui.ImVec2(imgui.GetMiddleButtonX(1), 25 * MONET_DPI_SCALE)) then
-							imgui.CloseCurrentPopup()
-						end
-						imgui.EndPopup()
+						sampAddChatMessage('[Justice Helper] {ffffff}Асистент доступен только для VIP участников на нашем дс сервера!', message_color)
+						sampAddChatMessage('[Justice Helper] {ffffff}Эту роль можно получить за донат разработчику - MTG MODS!', message_color)
 					end
 					imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
 					imgui.Columns(1)
@@ -4360,7 +4329,10 @@ imgui.OnFrame(
 				imgui.Text(fa.CIRCLE_INFO..u8" Установленная версия хелпера: " .. u8(thisScript().version))
 				imgui.SameLine()
 				if imgui.SmallButton(u8'Проверить обновления') then
-					check_update()
+					local result, check = pcall(check_update)
+					if not result then
+						sampAddChatMessage('[Justice Helper] {ffffff}Произошла ошибка при попытке проверить наличие обновлений!', message_color)
+					end
 				end
 				imgui.Separator()
 				imgui.Text(fa.BOOK ..u8" Гайд по использованию хелпера:")
@@ -4371,8 +4343,8 @@ imgui.OnFrame(
 				imgui.Separator()
 				imgui.Text(fa.HEADSET..u8" Тех.поддержка по хелперу:")
 				imgui.SameLine()
-				if imgui.SmallButton('https://discord.gg/mtg-mods-samp-1097643847774908526') then
-					openLink('https://discord.gg/mtg-mods-samp-1097643847774908526')
+				if imgui.SmallButton('https://discord.gg/mtgmods-samp') then
+					openLink('https://discord.gg/mtgmods-samp')
 				end
 				imgui.Separator()
 				imgui.Text(fa.GLOBE..u8" Тема хелпера на форуме BlastHack:")
@@ -5209,9 +5181,11 @@ imgui.OnFrame(
 							end
 							if wait_tag then
 								for tag, replacement in pairs(tagReplacements) do
-									local success, result = pcall(string.gsub, line, "{" .. tag .. "}", replacement())
-									if success then
-										line = result
+									if line:find("{" .. tag .. "}") then
+										local success, result = pcall(string.gsub, line, "{" .. tag .. "}", replacement())
+										if success then
+											line = result
+										end
 									end
 								end
 								sampSendChat(line)
@@ -5241,6 +5215,7 @@ imgui.OnFrame(
 		imgui.End()
     end
 )
+
 
 imgui.OnFrame(
     function() return CommandStopWindow[0] end,
@@ -5343,7 +5318,7 @@ imgui.OnFrame(
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY - 100 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.SetNextWindowSize(imgui.ImVec2(225 * MONET_DPI_SCALE, 113 * MONET_DPI_SCALE), imgui.Cond.FirstUseEver)
 		imgui.Begin(fa.BUILDING_SHIELD .. u8" Justice Helper##patrool_info_menu", PatroolMenu, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize )
-		if not isMonetLoader() and not sampIsChatInputActive() then player.HideCursor = true else player.HideCursor = false end
+		if not isMonetLoader() and not sampIsChatInputActive() and not sampIsDialogActive() and not isSampfuncsConsoleActive() then player.HideCursor = true else player.HideCursor = false end
 		if patrool_active then
 			imgui.Text(fa.CLOCK .. u8(' Время патрулирования: ') .. u8(tagReplacements.get_patrool_time()))
 			imgui.Separator()
@@ -5355,11 +5330,20 @@ imgui.OnFrame(
 			imgui.Separator()
 			if imgui.Button(fa.CIRCLE_INFO .. u8(' Доклад'), imgui.ImVec2(100 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
 				lua_thread.create(function ()
+					if debug_mode then
+						sampAddChatMessage('[Justice Helper DEBUG] {ffffff}' .. '/r ' .. tagReplacements.my_doklad_nick() .. ' на CONTROL. Продолжаю патруль, нахожусь в районе ' .. tagReplacements.get_area() .. " (" .. tagReplacements.get_square() .. ').', message_color)
+					end
 					sampSendChat('/r ' .. tagReplacements.my_doklad_nick() .. ' на CONTROL. Продолжаю патруль, нахожусь в районе ' .. tagReplacements.get_area() .. " (" .. tagReplacements.get_square() .. ').')
 					wait(1200)
 					if tagReplacements.get_car_units() ~= 'Нету' then
+						if debug_mode then
+							sampAddChatMessage('[Justice Helper DEBUG] {ffffff}' .. '/r Патрулирую уже ' .. format_patrool_time(patrool_time) .. ' в составе юнита ' .. tagReplacements.get_car_units() .. ', состояние ' .. u8(tagReplacements.get_patrool_code()) .. '.', message_color)
+						end
 						sampSendChat('/r Патрулирую уже ' .. format_patrool_time(patrool_time) .. ' в составе юнита ' .. tagReplacements.get_car_units() .. ', состояние ' .. u8(tagReplacements.get_patrool_code()) .. '.')
 					else
+						if debug_mode then
+							sampAddChatMessage('[Justice Helper DEBUG] {ffffff}' .. '/r Патрулирую уже ' .. format_patrool_time(patrool_time) .. ', состояние ' .. u8(tagReplacements.get_patrool_code()) .. '.', message_color)
+						end
 						sampSendChat('/r Патрулирую уже ' .. format_patrool_time(patrool_time) .. ', состояние ' .. u8(tagReplacements.get_patrool_code()) .. '.')
 					end
 				end)
@@ -5368,8 +5352,14 @@ imgui.OnFrame(
 			if imgui.Button(fa.CIRCLE_STOP .. u8(' Завершить'), imgui.ImVec2(100 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
 				lua_thread.create(function ()
 					patrool_active = false
+					if debug_mode then
+						sampAddChatMessage('[Justice Helper DEBUG] {ffffff}' .. '/r ' .. tagReplacements.my_doklad_nick() .. ' на CONTROL. Завершаю патруль, освобождаю маркировку ' .. tagReplacements.get_patrool_mark() .. ', состояние ' .. tagReplacements.get_patrool_code(), message_color)
+					end
 					sampSendChat('/r ' .. tagReplacements.my_doklad_nick() .. ' на CONTROL. Завершаю патруль, освобождаю маркировку ' .. tagReplacements.get_patrool_mark() .. ', состояние ' .. tagReplacements.get_patrool_code())
 					wait(1200)
+					if debug_mode then
+						sampAddChatMessage('[Justice Helper DEBUG] {ffffff}' .. '/r Патрулировал ' .. format_patrool_time(patrool_time), message_color)
+					end
 					sampSendChat('/r Патрулировал ' .. format_patrool_time(patrool_time), -1)
 					patrool_time = 0
 					patrool_start_time = 0
@@ -5377,6 +5367,11 @@ imgui.OnFrame(
 					patrool_code = 'CODE4'
 					ComboPatroolCode[0] = 5
 					PatroolMenu[0] = false
+					wait(1200)
+					if debug_mode then
+						sampAddChatMessage('[Justice Helper DEBUG] {ffffff}' .. '/delvdesc', message_color)
+					end
+					sampSendChat('/delvdesc')
 				end)
 			end
 		else
@@ -5418,13 +5413,27 @@ imgui.OnFrame(
 				patrool_start_time = os.time()
 				patrool_active = true
 				lua_thread.create(function ()
+					if debug_mode then
+						sampAddChatMessage('[Justice Helper DEBUG] {ffffff}' .. '/r ' .. tagReplacements.my_doklad_nick() .. ' на CONTROL. Начинаю патруль,  нахожусь в районе ' .. tagReplacements.get_area() .. " (" .. tagReplacements.get_square() .. ').', message_color)
+					end
 					sampSendChat('/r ' .. tagReplacements.my_doklad_nick() .. ' на CONTROL. Начинаю патруль,  нахожусь в районе ' .. tagReplacements.get_area() .. " (" .. tagReplacements.get_square() .. ').')
 					wait(1200)
 					if tagReplacements.get_car_units() ~= 'Нету' then
+						if debug_mode then
+							sampAddChatMessage('[Justice Helper DEBUG] {ffffff}' .. '/r Занимаю маркировку ' .. tagReplacements.get_patrool_mark() .. ', нахожусь в составе юнита ' .. tagReplacements.get_car_units() .. ', состояние ' .. tagReplacements.get_patrool_code() .. '.', message_color)
+						end
 						sampSendChat('/r Занимаю маркировку ' .. tagReplacements.get_patrool_mark() .. ', нахожусь в составе юнита ' .. tagReplacements.get_car_units() .. ', состояние ' .. tagReplacements.get_patrool_code() .. '.')
 					else
+						if debug_mode then
+							sampAddChatMessage('[Justice Helper DEBUG] {ffffff}' .. '/r Занимаю маркировку ' .. tagReplacements.get_patrool_mark() .. ', состояние ' .. tagReplacements.get_patrool_code() .. '.', message_color)
+						end
 						sampSendChat('/r Занимаю маркировку ' .. tagReplacements.get_patrool_mark() .. ', состояние ' .. tagReplacements.get_patrool_code() .. '.')
 					end
+					wait(1200)
+					if debug_mode then
+						sampAddChatMessage('[Justice Helper DEBUG] {ffffff}' .. '/vdesc ' .. tagReplacements.get_patrool_mark(), message_color)
+					end
+					sampSendChat('/vdesc ' .. tagReplacements.get_patrool_mark())
 				end)
 				imgui.CloseCurrentPopup()
 			end
@@ -5490,7 +5499,7 @@ imgui.OnFrame(
 			end
 			if imgui.Button(fa.PASSPORT .. u8" Попросить документы", imgui.ImVec2(-1, 25 * MONET_DPI_SCALE)) then
 				lua_thread.create(function()
-					sampSendChat("Хорошо, предоставьте мне все ваши документы для прверки.")
+					sampSendChat("Хорошо, предоставьте мне все ваши документы для проверки.")
 					wait(2000)
 					sampSendChat("Мне нужен ваш Паспорт, Мед.карта и Лицензии.")
 					wait(2000)
@@ -5565,6 +5574,15 @@ imgui.OnFrame(
 						sampSendChat("/n Получить его можно отслужив в армии либо купить в /donate ")
 					end)
 				end
+
+				if imgui.Selectable(u8"Нету жилья") then
+					lua_thread.create(function ()
+						SobesMenu[0] = false
+						sampSendChat("/todo К сожалению, вы нам не подходите*с разочарованием на лице")
+						wait(2000)
+						sampSendChat("У вас нету жилья. Арендуйте себе отель либо подселитесь в дом, затем приходите к нам!")
+					end)
+				end	
                 if imgui.Selectable(u8"Законопослушность") then
 					lua_thread.create(function ()
 						SobesMenu[0] = false
@@ -5583,16 +5601,7 @@ imgui.OnFrame(
 						sampSendChat("Вы наркозависимый, сначало вам необходимо вылечиться в больнице!")
 					end)
 				end
-				if imgui.Selectable(u8"НонРП ник") then
-					lua_thread.create(function ()
-						SobesMenu[0] = false
-						sampSendChat("/todo К сожалению, вы нам не подходите*с разочарованием на лице")
-						wait(2000)
-						sampSendChat("У вас в паспорте опечатка в имени.")
-						wait(2000)
-						sampSendChat("/n У вас НонРП ник, измените его!")
-					end)
-				end	
+				
 				if imgui.Selectable(u8"Активная повестка") then
 					lua_thread.create(function ()
 						SobesMenu[0] = false
@@ -5619,6 +5628,7 @@ imgui.OnFrame(
 		end
     end
 )
+
 
 imgui.OnFrame(
     function() return SumMenuWindow[0] end,
@@ -6100,8 +6110,10 @@ function main()
 	if settings.general.use_info_menu then
 		InformationWindow[0] = true
 	end	
-	check_update()
-
+	local result, check = pcall(check_update)
+	if not result then
+		sampAddChatMessage('[Justice Helper] {ffffff}Произошла ошибка при попытке проверить наличие обновлений!', message_color)
+	end
 	while true do
 		wait(0)
 
