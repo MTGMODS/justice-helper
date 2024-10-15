@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of Justice (PD and FBI) ??and the Ministry of Defense (Army)')
 script_author("MTG MODS")
-script_version("1.1 STABLE")
+script_version("1.2")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -22,9 +22,9 @@ local default_settings = {
 		auto_doklad_patrool = false,
 		auto_doklad_damage = false,
 		auto_doklad_arrest = false,
-		auto_change_code_siren = true,
-		auto_update_wanteds = true,
-		auto_update_members = true,
+		auto_change_code_siren = false,
+		auto_update_wanteds = false,
+		auto_update_members = false,
 		auto_notify_payday = false,
 		auto_notify_port = false,
 		auto_uval = false,
@@ -34,12 +34,15 @@ local default_settings = {
 		moonmonet_theme_color = 40703,
 		mobile_fastmenu_button = true,
 		mobile_stop_button = true,
+		mobile_meg_button = true,
 		use_binds = true,
 		use_info_menu = true,
 		bind_mainmenu = '[113]',
 		bind_fastmenu = '[69]',
 		bind_leader_fastmenu = '[71]',
-		bind_command_stop = '[123]'
+		bind_command_stop = '[123]',
+		bind_1055 = '[101]',
+		bind_1066 = '[102]',
 	},
 	player_info = {
 		name_surname = '',
@@ -362,7 +365,7 @@ local commands = {
         { cmd = 'ungtm' , description = 'Перестать вести за собой' ,  text = '/me отпускает руки задержанного и перестаёт вести его за собой&/ungotome {arg_id}', arg = '{arg_id}', enable = true, waiting = '1.200'},
 		{ cmd = 'ss' , description = 'Кричалка' ,  text = '/s Всем поднять руки вверх, работает {fraction_tag}!', arg = '', enable = true, waiting = '1.200'},
 		{ cmd = 't' , description = 'Достать тазер' ,  text = '/taser', arg = '', enable = true, waiting = '1.200'},
-		{ cmd = 'frl' , description = 'Первичный обыск' ,  text = 'Сейчас я проверю у вас наличие оружия или других острых предметов, не двигайтесь.&/me прощупывает тело задержанного человека&/me прощупывает карманы задержанного человека', arg = '', enable = false, waiting = '1.200'},
+		{ cmd = 'frl' , description = 'Первичный обыск' ,  text = 'Сейчас я проверю у вас наличие оружия или других острых предметов, не двигайтесь.&/me прощупывает тело задержанного человека&/me прощупывает карманы задержанного человека', arg = '', enable = true, waiting = '1.200'},
 		{ cmd = 'fr' , description = 'Полный обыск' ,  text = '/do Резиновые перчатки на тактическом поясе.&/todo Сейчас я полностю обыщу вас, на наличие запрещенных предметов*надевая резиновые перчатки&/me прощупывает тело и карманы задержанного человека&/me достаёт из карманов задержанного все его вещи для изучения&/me внимательно осматривает все найденные вещи у задержанного человека&/frisk {arg_id}&/me снимает резиновые перчатки и убирает их на тактический пояск&/do Блокнот с ручкой в нагрудном кармане.&/me берет в руки блокнот с ручкой, и записывает всю информацию про обыск&/me сделал пометки, убирает блокнот с ручкой в нагрудный карман', arg = '{arg_id}', enable = true, waiting = '1.200'},
 		{ cmd = 'camon' , description = 'Включить cкрытую боди камеру' ,  text = '/do К форме прикреплена скрытая боди камера.&/me незаметным движением руки включил{sex} боди камеру.&/do Скрытая боди камера включена и снимает всё происходящее.', arg = '', enable = true, waiting = '1.200'},
 		{ cmd = 'camoff' , description = 'Выключить cкрытую боди камеру' ,  text = '/do К форме прикреплена скрытая боди камера.&/me незаметным движением руки выключил{sex} боди камеру.&/do Скрытая боди камера выключена и больше не снимает всё происходящее.', arg = '', enable = true, waiting = '1.200'},
@@ -761,6 +764,7 @@ local checkbox_update_wanteds = imgui.new.bool(settings.general.auto_update_want
 local checkbox_notify_port = imgui.new.bool(settings.general.auto_notify_port or false)
 local checkbox_notify_payday = imgui.new.bool(settings.general.auto_notify_payday or false)
 local checkbox_auto_clicker = imgui.new.bool(settings.general.auto_clicker_situation or false)
+local checkbox_mobile_meg_button = imgui.new.bool(settings.general.mobile_meg_button or false)
 
 local input_accent = imgui.new.char[256](u8(settings.player_info.accent))
 local input_name_surname = imgui.new.char[256](u8(settings.player_info.name_surname))
@@ -832,7 +836,7 @@ local show_note_name = nil
 local show_note_text = nil
 
 local InformationWindow = imgui.new.bool()
-
+local MegafonWindow = imgui.new.bool()
 local UpdateWindow = imgui.new.bool()
 local updateUrl = ""
 local updateVer = ""
@@ -1110,7 +1114,16 @@ if not isMonetLoader() then
 				end
 			end
 		end)
-		
+		TrafficStopHotKey = hotkey.RegisterHotKey('TrafficStop', false, decodeJson(settings.general.bind_1055), function() 
+			if settings.general.use_binds then 
+				sampProcessChatInput('/55')
+			end
+		end)
+		TrafficStop2HotKey = hotkey.RegisterHotKey('TrafficStop2', false, decodeJson(settings.general.bind_1066), function() 
+			if settings.general.use_binds then 
+				sampProcessChatInput('/66')
+			end
+		end)
 		CommandStopHotKey = hotkey.RegisterHotKey('Stop Command', false, decodeJson(settings.general.bind_command_stop), function() 
 			if settings.general.use_binds then 
 				sampProcessChatInput('/stop')
@@ -1477,36 +1490,34 @@ function initialize_commands()
 			play_error_sound()
 		end
 	end)
-	-- sampRegisterChatCommand("wanteds", function(arg)
-	-- 	if WantedWindow[0] then
-	-- 		WantedWindow[0] = false
-	-- 		sampAddChatMessage('[Justice Helper] {ffffff}Меню списка преступников закрыто!', message_color)
-	-- 	elseif not isActiveCommand then
-	-- 		lua_thread.create(function()
-	-- 			sampAddChatMessage('[Justice Helper] {ffffff}Начинаю сканирование /wanted [1-7], ожидайте...', message_color)
-	-- 			show_cef_notify('info', 'Justice Helper', "Сканирование /wanted...", 2500)
-	-- 			wanted_new = {}
-	-- 			check_wanted = true
-	-- 			for i = 7, 1, -1 do
-	-- 				sampSendChat('/wanted ' .. i)
-	-- 				wait(300)
-	-- 			end
-	-- 			check_wanted = false
-	-- 			if #wanted_new == 0 then
-	-- 				sampAddChatMessage('[Justice Helper] {ffffff}Сейчас на сервере нету игроков с розыском!', message_color)
-	-- 			else
-	-- 				sampAddChatMessage('[Justice Helper] {ffffff}Сканирование успешно заверешено, данные в меню будут обновляються каждые 3 секунды.', message_color)
-	-- 				sampAddChatMessage('[Justice Helper] {ffffff}ВНИМАНИЕ! Из-за постоянного обновления данных плохо работают диалоги и чат!', message_color)
-	-- 				sampAddChatMessage('[Justice Helper] {ffffff}Чтобы диалоги и чат работали стабильно, закройте меню списка преступников!', message_color)
-	-- 				wanted = wanted_new
-	-- 				WantedWindow[0] = true
-	-- 			end
-	-- 		end)
-	-- 	else
-	-- 		sampAddChatMessage('[Justice Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!', message_color)
-	-- 		play_error_sound()
-	-- 	end
-	-- end)
+	sampRegisterChatCommand("wanteds", function(arg)
+		if WantedWindow[0] then
+			WantedWindow[0] = false
+			sampAddChatMessage('[Justice Helper] {ffffff}Меню списка преступников закрыто!', message_color)
+		elseif not isActiveCommand then
+			lua_thread.create(function()
+				sampAddChatMessage('[Justice Helper] {ffffff}Начинаю сканирование /wanted [1-7], ожидайте...', message_color)
+				show_cef_notify('info', 'Justice Helper', "Сканирование /wanted...", 2500)
+				wanted_new = {}
+				check_wanted = true
+				for i = 7, 1, -1 do
+					sampSendChat('/wanted ' .. i)
+					wait(300)
+				end
+				check_wanted = false
+				if #wanted_new == 0 then
+					sampAddChatMessage('[Justice Helper] {ffffff}Сейчас на сервере нету игроков с розыском!', message_color)
+				else
+					sampAddChatMessage('[Justice Helper] {ffffff}Сканирование успешно заверешено', message_color)
+					wanted = wanted_new
+					WantedWindow[0] = true
+				end
+			end)
+		else
+			sampAddChatMessage('[Justice Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!', message_color)
+			play_error_sound()
+		end
+	end)
 	sampRegisterChatCommand("debug", function() debug_mode = not debug_mode end)
 	sampRegisterChatCommand("mask", function() 
 		if not isActiveCommand then
@@ -1631,6 +1642,9 @@ function initialize_commands()
 			sampAddChatMessage('[Justice Helper] {ffffff}Дождитесь завершения отыгровки предыдущей команды!', message_color)
 			play_error_sound()
 		end
+	end)
+	sampRegisterChatCommand("meg", function ()
+		MegafonWindow[0] = not MegafonWindow[0]
 	end)
 	-- Ригистрация всех команд которые есть в json
 	registerCommandsFrom(commands.commands)
@@ -2801,10 +2815,6 @@ function sampev.onSendTakeDamage(playerId,damage,weapon)
 				sampAddChatMessage('[Justice Helper] {ffffff}Игрок ' .. sampGetPlayerNickname(playerId) .. '[' .. playerId .. '] напал на вас используя ' .. weapon_name .. ', ситуационный код изменён на CODE 0.', message_color)
 				ComboPatroolCode[0] = 1
 				patrool_code = combo_patrool_code_list[ComboPatroolCode[0] + 1]
-				if settings.general.auto_doklad_damage then
-					sampSendChat('/r ' .. tagReplacements.my_doklad_nick() .. ' на CONTROl. Нахожусь под огнём в районе ' .. tagReplacements.get_area() ..  ' (' .. tagReplacements.get_square() .. '), состояние CODE 0! ')
-				end
-				table.insert(enemy, 'Игрок ' .. sampGetPlayerNickname(playerId) .. '[' .. playerId .. '] напал на вас используя ' .. weapon_name .. '!')
 			end
 		end
 	end
@@ -2962,7 +2972,14 @@ function sampev.onServerMessage(color,text)
 		local nick, mins = text:match('Вы посадили игрока (.+) в тюрьму на (%d+) минут')
 		sampSendChat('/r ' .. tagReplacements.my_doklad_nick() .. ' на CONTROL. Преступник ' .. nick:gsub('_', ' ') .. ' посажен в КПЗ на ' .. mins .. ' минут!')
 	end
-	
+	if text:find('Bogdan_Martelli%[%d+%]') and getARZServerNumber():find('20') then
+		local lastColor = text:match("{%x+}$")
+   		if not lastColor then
+			lastColor = "{" .. rgba_to_hex(color) .. "}"
+		end
+		text = string.gsub(text, '(Bogdan_Martelli%[%d+%])', '%1 ' .. message_color_hex .. '(MTG MODS)' .. lastColor)
+		return {color,text}
+	end
 end
 function sampev.onSendChat(text)
 	local ignore = {
@@ -3407,8 +3424,9 @@ imgui.OnFrame(
 					imgui.SetColumnWidth(-1, 480 * MONET_DPI_SCALE)
 					imgui.NextColumn()
 					if imgui.CenterColumnSmallButton(u8'Управление') then
-						sampAddChatMessage('[Justice Helper] {ffffff}Асистент доступен только для VIP участников на нашем дс сервера!', message_color)
-						sampAddChatMessage('[Justice Helper] {ffffff}Эту роль можно получить за донат разработчику - MTG MODS!', message_color)
+						sampAddChatMessage('[Justice Helper] {ffffff}Ассистент доступен только за донат разработчику - MTG MODS!', message_color)
+						sampAddChatMessage('[Justice Helper] {ffffff}Реквизы для доната есть в настройках скрипта', message_color)
+						sampAddChatMessage('[Justice Helper] {ffffff}Так-же за донат вы получите много других доп функий например бинды любых команд', message_color)
 					end
 					imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
 					imgui.Columns(1)
@@ -3895,6 +3913,11 @@ imgui.OnFrame(
 									settings.general.mobile_fastmenu_button = true
 									save_settings()
 								end
+								if imgui.Checkbox(u8(' Отображение кнопок "55/66" (аналог /meg)'), checkbox_mobile_meg_button) then
+									settings.general.mobile_meg_button = checkbox_mobile_meg_button[0]
+									MegafonWindow[0] = checkbox_mobile_meg_button[0]
+									save_settings()
+								end
 								imgui.Separator()
 								imgui.CenterText(u8'Способ приостановки отыгровки команды:')
 								if imgui.RadioButtonIntPtr(u8" Только используя команду /stop", stop_type, 0) then
@@ -3984,6 +4007,26 @@ imgui.OnFrame(
 											settings.general.bind_command_stop = encodeJson(CommandStopHotKey:GetHotKey())
 											save_settings()
 										end
+										imgui.Separator()
+										imgui.CenterText(u8'Проведение Traffic Stop (аналог /55):')
+										local width = imgui.GetWindowWidth()
+										local calc = imgui.CalcTextSize(getNameKeysFrom(settings.general.bind_1055))
+										imgui.SetCursorPosX(width / 2 - calc.x / 2)
+										if TrafficStopHotKey:ShowHotKey() then
+											settings.general.bind_1055 = encodeJson(TrafficStopHotKey:GetHotKey())
+											save_settings()
+										end
+										imgui.Separator()
+
+										imgui.CenterText(u8'Проведение Traffic Stop повышенного риска (аналог /66):')
+										local width = imgui.GetWindowWidth()
+										local calc = imgui.CalcTextSize(getNameKeysFrom(settings.general.bind_1066))
+										imgui.SetCursorPosX(width / 2 - calc.x / 2)
+										if TrafficStop2HotKey:ShowHotKey() then
+											settings.general.bind_1066 = encodeJson(TrafficStop2HotKey:GetHotKey())
+											save_settings()
+										end
+
 										imgui.Separator()
 										if imgui.Button(fa.CIRCLE_XMARK .. u8' Закрыть', imgui.ImVec2(imgui.GetMiddleButtonX(1), 25 * MONET_DPI_SCALE)) then
 											imgui.CloseCurrentPopup()
@@ -4603,11 +4646,15 @@ imgui.OnFrame(
 				if imgui.SmallButton('https://discord.gg/mtgmods-samp') then
 					openLink('https://discord.gg/mtgmods-samp')
 				end
+				imgui.SameLine()
+				if imgui.SmallButton(u8'резервная ссылка') then
+					openLink('https://discord.com/invite/mtg-mods-samp-1097643847774908526')
+				end
 				imgui.Separator()
 				imgui.Text(fa.GLOBE..u8" Тема хелпера на форуме BlastHack:")
 				imgui.SameLine()
-				if imgui.SmallButton(u8'Будет позже...') then
-					--openLink('https://www.blast.hk/')
+				if imgui.SmallButton(u8'https://www.blast.hk/threads/216130/') then
+					openLink('https://www.blast.hk/threads/216130/')
 				end
 				imgui.Separator()
 				imgui.Text(fa.HAND_HOLDING_DOLLAR .. u8" Поддержать разработчика донатом:")
@@ -4773,6 +4820,25 @@ imgui.OnFrame(
 		imgui.End()
     end
 )
+
+imgui.OnFrame(
+    function() return MegafonWindow[0] end,
+    function(player)
+		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 8.5, sizeY / 2.1), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+		imgui.Begin(fa.BUILDING_SHIELD .. " Justice Helper##fast_meg_button", MegafonWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoTitleBar  + imgui.WindowFlags.NoBackground )
+		--if not isMonetLoader() then imgui.SetWindowFontScale(settings.general.custom_dpi) end
+		if not isMonetLoader() and not sampIsChatInputActive() and not sampIsDialogActive() and not isSampfuncsConsoleActive() then player.HideCursor = true else player.HideCursor = false end
+		if imgui.Button(fa.BULLHORN .. u8' 10-55 ',  imgui.ImVec2(75 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+			sampProcessChatInput('/55')
+		end
+		imgui.SameLine()
+		if imgui.Button(fa.BULLHORN .. u8' 10-66 ',  imgui.ImVec2(75 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
+			sampProcessChatInput('/66')
+		end
+		imgui.End()
+    end
+)
+
 
 imgui.OnFrame(
     function() return DeportamentWindow[0] end,
@@ -6320,12 +6386,15 @@ function explode_argb(argb)
     local b = bit.band(argb, 0xFF)
     return a, r, g, b
 end
+function rgba_to_hex(rgba)
+    local r = bit.rshift(rgba, 24) % 256
+    local g = bit.rshift(rgba, 16) % 256
+    local b = bit.rshift(rgba, 8) % 256
+    local a = rgba % 256
+    return string.format("%02X%02X%02X", r, g, b)
+end
 function ARGBtoRGB(color) 
 	return bit.band(color, 0xFFFFFF) 
-end
-function rgb2hex(r, g, b)
-    local hex = string.format("#%02X%02X%02X", r, g, b)
-    return hex
 end
 function ColorAccentsAdapter(color)
     local a, r, g, b = explode_argb(color)
@@ -6367,10 +6436,17 @@ function main()
 	if settings.general.use_info_menu then
 		InformationWindow[0] = true
 	end	
+	if settings.general.mobile_meg_button and isMonetLoader() then
+		MegafonWindow[0] = true
+	end	
+	
 	local result, check = pcall(check_update)
 	if not result then
 		sampAddChatMessage('[Justice Helper] {ffffff}Произошла ошибка при попытке проверить наличие обновлений!', message_color)
 	end
+	
+	
+
 	while true do
 		wait(0)
 
@@ -6385,6 +6461,25 @@ function main()
 					sampSendChat('/r Патрулирую уже ' .. format_patrool_time(patrool_time) .. ', состояние ' .. u8(tagReplacements.get_patrool_code()) .. '.')
 				end
 			end
+			if isCharInAnyCar(PLAYER_PED) and settings.general.auto_change_code_siren then
+				local currentSirenState = isCarSirenOn(storeCarCharIsInNoSave(PLAYER_PED))
+				if firstCheck then
+					lastSirenState = currentSirenState
+					firstCheck = false
+				end
+				if currentSirenState ~= lastSirenState then
+					lastSirenState = currentSirenState
+					if currentSirenState then
+						sampAddChatMessage("[Justice Helper] {ffffff}В вашем т/с была включена сирена, изменяю ситуационный код на CODE 3!", message_color)
+						ComboPatroolCode[0] = 4
+						patrool_code = combo_patrool_code_list[ComboPatroolCode[0] + 1]
+					else
+						sampAddChatMessage("[Justice Helper] {ffffff}В вашем т/с была отключена сирена, изменяю ситуационный код на CODE 4.", message_color)
+						ComboPatroolCode[0] = 5
+						patrool_code = combo_patrool_code_list[ComboPatroolCode[0] + 1]
+					end
+				end
+			end
 		end	
 		
 		if isMonetLoader() then
@@ -6397,42 +6492,6 @@ function main()
 			end
 		end 
 
-		if clicked and settings.general.auto_clicker_situation then
-			if isMonetLoader() then
-				local bs = raknetNewBitStream()
-				raknetBitStreamWriteInt8(bs, 220)
-				raknetBitStreamWriteInt8(bs, 63)
-				raknetBitStreamWriteInt8(bs, 25)
-				raknetBitStreamWriteInt32(bs, 0)
-				raknetBitStreamWriteInt8(bs, 255)
-				raknetBitStreamWriteInt8(bs, 255)
-				raknetBitStreamWriteInt8(bs, 255)
-				raknetBitStreamWriteInt8(bs, 255)
-				raknetBitStreamWriteInt32(bs, 0)
-				raknetSendBitStream(bs)
-				raknetDeleteBitStream(bs)
-				wait(10)
-			else
-				local cmd = "clickMinigame"
-				local bs = raknetNewBitStream()
-				raknetBitStreamWriteInt8(bs, 220)
-				raknetBitStreamWriteInt8(bs, 18)
-				raknetBitStreamWriteInt8(bs, #cmd)
-				raknetBitStreamWriteInt8(bs, 0)
-				raknetBitStreamWriteInt8(bs, 0)
-				raknetBitStreamWriteInt8(bs, 0)
-				raknetBitStreamWriteString(bs, cmd)
-				raknetBitStreamWriteInt32(bs, 0)
-				raknetBitStreamWriteInt8(bs, 0)
-				raknetBitStreamWriteInt8(bs, 0)
-				raknetSendBitStreamEx(bs, 1, 7, 1)
-				raknetDeleteBitStream(bs)
-				setGameKeyState(1, 255)
-				wait(10)
-				setGameKeyState(1, 0)
-			end
-		end
-
 		if nowGun ~= getCurrentCharWeapon(PLAYER_PED) and settings.general.rp_gun then
 			oldGun = nowGun
 			nowGun = getCurrentCharWeapon(PLAYER_PED)
@@ -6444,61 +6503,15 @@ function main()
 				sampSendChat("/me " .. gunOff[oldGun] .. " " .. weapons.get_name(oldGun) .. " " .. gunPartOff[oldGun] .. ", после чего " .. gunOn[nowGun] .. " " .. weapons.get_name(nowGun) .. " " .. gunPartOn[nowGun])
 			end
 		end
-
-		if WantedWindow[0] and not update_wanted_check and settings.general.auto_update_wanteds then -- обновление вантеда по кд в менюшке
-			update_wanted_check = true	
-			wanted_new = {}
-			check_wanted = true
-			for i = 7, 1, -1 do
-				sampSendChat('/wanted ' .. i)
-				wait(300)
-			end
-			wanted = wanted_new
-			check_wanted = false
-			update_wanted_check = false
-		end
-
-		if MembersWindow[0] and not update_members_check and settings.general.auto_update_members then -- обновление мемберса в менюшке
-			update_members_check = true
-			wait(1500)
-			if MembersWindow[0] then
-				members_new = {} 
-				members_check = true 
-				sampSendChat("/members") 
-			end
-			wait(1500)
-			update_members_check = false
-		end
-		
-		if settings.general.auto_notify_payday and ((os.date("%M", os.time()) == "55" and os.date("%S", os.time()) == "00") or (os.date("%M", os.time()) == "25" and os.date("%S", os.time()) == "00")) then
+	
+		if ((os.date("%M", os.time()) == "55" and os.date("%S", os.time()) == "00") or (os.date("%M", os.time()) == "25" and os.date("%S", os.time()) == "00")) and getARZServerNumber() ~= 200 --[[ vise sity ]] then
 			sampAddChatMessage('[Justice Helper] {ffffff}Через 5 минут будет PAYDAY. Наденьте форму чтобы не пропустить зарплату!', message_color)
 			wait(1000)
 		end
 
-		if settings.general.auto_notify_port and (os.date("%H", os.time()) == "19"  and os.date("%M", os.time()) == "25" and os.date("%S", os.time()) == "00") then
-			sampAddChatMessage('[Justice Helper] {ffffff}Через 5 минут будет МП "Порт". Чтобы отметить Порт используйте команду /port', message_color)
-			wait(1000)
-		end
+	
 		
-		if isCharInAnyCar(PLAYER_PED) and settings.general.auto_change_code_siren then
-			local currentSirenState = isCarSirenOn(storeCarCharIsInNoSave(PLAYER_PED))
-			if firstCheck then
-				lastSirenState = currentSirenState
-				firstCheck = false
-			end
-			if currentSirenState ~= lastSirenState then
-				lastSirenState = currentSirenState
-				if currentSirenState then
-					sampAddChatMessage("[Justice Helper] {ffffff}В вашем т/с была включена сирена, изменяю ситуационный код на CODE 3!", message_color)
-					ComboPatroolCode[0] = 4
-					patrool_code = combo_patrool_code_list[ComboPatroolCode[0] + 1]
-				else
-					sampAddChatMessage("[Justice Helper] {ffffff}В вашем т/с была отключена сирена, изменяю ситуационный код на CODE 4.", message_color)
-					ComboPatroolCode[0] = 5
-					patrool_code = combo_patrool_code_list[ComboPatroolCode[0] + 1]
-				end
-			end
-		end
+	
 
 	end
 
