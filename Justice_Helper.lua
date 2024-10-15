@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of Justice (PD and FBI) ??and the Ministry of Defense (Army)')
 script_author("MTG MODS")
-script_version("1.2")
+script_version("1.2 Stable")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -164,15 +164,24 @@ function load_settings()
 				if result then
 					settings = loaded
 					print('[Justice Helper] Настройки успешно загружены!')
-					for category, _ in pairs(default_settings) do
-						if settings[category] == nil then
-							settings[category] = {}
-						end
-						for key, value in pairs(default_settings[category]) do
-							if settings[category][key] == nil then
-								settings[category][key] = value
-							end
-						end
+					-- for category, _ in pairs(default_settings) do
+					-- 	if settings[category] == nil then
+					-- 		settings[category] = {}
+					-- 	end
+					-- 	for key, value in pairs(default_settings[category]) do
+					-- 		if settings[category][key] == nil then
+					-- 			settings[category][key] = value
+					-- 		end
+					-- 	end
+					-- end
+					if settings.general.version ~= thisScript().version then
+						print('[Justice Helper] Новая версия, сброс настроек!')
+						settings = default_settings
+						save_settings()
+						reload_script = true
+						thisScript():reload()
+					else
+						print('[Justice Helper] Настройки успешно загружены!')
 					end
 				else
 					print('[Justice Helper] Не удалось открыть файл с настройками, использую стандартные настройки!')
