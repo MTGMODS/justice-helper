@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of Justice (PD and FBI) ??and the Ministry of Defense (Army)')
 script_author("MTG MODS")
-script_version("1.2 Stable")
+script_version("1.2")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -2576,6 +2576,7 @@ function getARZServerNumber()
 		{name = 'Mobile III', number = '103'},
 		{name = 'Mobile II', number = '102'},
 		{name = 'Mobile I', number = '101'},
+		{name = 'Vice', number = '200'},
 	}
 	for _, s in ipairs(servers) do
 		if sampGetCurrentServerName():find(s.name) then
