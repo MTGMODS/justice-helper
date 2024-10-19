@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of Justice (PD and FBI) ??and the Ministry of Defense (Army)')
 script_author("MTG MODS")
-script_version("1.2")
+script_version("1.3")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
