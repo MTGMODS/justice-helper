@@ -3186,7 +3186,7 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 	end
 	
 	if vc_vize_bool and text:find('Управление разрешениями на командировку в Vice City') then -- VS Visa [0]
-		sampSendDialogResponse(dialogid, 1, 13, 0)
+		sampSendDialogResponse(dialogid, 1, 12, 0)
 		return false 
 	end
 	
