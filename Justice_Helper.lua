@@ -2540,47 +2540,57 @@ function argbToRgbNormalized(argb)
     local normalizedB = b / 255.0
     return {normalizedR, normalizedG, normalizedB}
 end
+local servers = {
+	{name = 'Phoenix', number = '01'},
+	{name = 'Tucson', number = '02'},
+	{name = 'Scottdale', number = '03'},
+	{name = 'Chandler', number = '04'},
+	{name = 'Brainburg', number = '05'},
+	{name = 'Saint%-Rose', number = '06'},
+	{name = 'Mesa', number = '07'},
+	{name = 'Red%-Rock', number = '08'},
+	{name = 'Yuma', number = '09'},
+	{name = 'Surprise', number = '10'},
+	{name = 'Prescott', number = '11'},
+	{name = 'Glendale', number = '12'},
+	{name = 'Kingman', number = '13'},
+	{name = 'Winslow', number = '14'},
+	{name = 'Payson', number = '15'},
+	{name = 'Gilbert', number = '16'},
+	{name = 'Show Low', number = '17'},
+	{name = 'Casa%-Grande', number = '18'},
+	{name = 'Page', number = '19'},
+	{name = 'Sun%-City', number = '20'},
+	{name = 'Queen%-Creek', number = '21'},
+	{name = 'Sedona', number = '22'},
+	{name = 'Holiday', number = '23'},
+	{name = 'Wednesday', number = '24'},
+	{name = 'Yava', number = '25'},
+	{name = 'Faraway', number = '26'},
+	{name = 'Bumble Bee', number = '27'},
+	{name = 'Christmas', number = '28'},
+	{name = 'Mirage', number = '29'},
+	{name = 'Love', number = '30'},
+	{name = 'Mobile III', number = '103'},
+	{name = 'Mobile II', number = '102'},
+	{name = 'Mobile I', number = '101'},
+	{name = 'Vice City', number = '200'},
+}
 function getARZServerNumber()
 	local server = 0
-	local servers = {
-		{name = 'Phoenix', number = '01'},
-		{name = 'Tucson', number = '02'},
-		{name = 'Scottdale', number = '03'},
-		{name = 'Chandler', number = '04'},
-		{name = 'Brainburg', number = '05'},
-		{name = 'Saint%-Rose', number = '06'},
-		{name = 'Mesa', number = '07'},
-		{name = 'Red%-Rock', number = '08'},
-		{name = 'Yuma', number = '09'},
-		{name = 'Surprise', number = '10'},
-		{name = 'Prescott', number = '11'},
-		{name = 'Glendale', number = '12'},
-		{name = 'Kingman', number = '13'},
-		{name = 'Winslow', number = '14'},
-		{name = 'Payson', number = '15'},
-		{name = 'Gilbert', number = '16'},
-		{name = 'Show Low', number = '17'},
-		{name = 'Casa%-Grande', number = '18'},
-		{name = 'Page', number = '19'},
-		{name = 'Sun%-City', number = '20'},
-		{name = 'Queen%-Creek', number = '21'},
-		{name = 'Sedona', number = '22'},
-		{name = 'Holiday', number = '23'},
-		{name = 'Wednesday', number = '24'},
-		{name = 'Yava', number = '25'},
-		{name = 'Faraway', number = '26'},
-		{name = 'Bumble Bee', number = '27'},
-		{name = 'Christmas', number = '28'},
-		{name = 'Mirage', number = '29'},
-		{name = 'Love', number = '30'},
-		{name = 'Mobile III', number = '103'},
-		{name = 'Mobile II', number = '102'},
-		{name = 'Mobile I', number = '101'},
-		{name = 'Vice', number = '200'},
-	}
 	for _, s in ipairs(servers) do
 		if sampGetCurrentServerName():find(s.name) then
 			server = s.number
+			break
+		end
+	end
+	return server
+end
+function getARZServerName(number)
+	local server = ''
+	for _, s in ipairs(servers) do
+		if tostring(number) == tostring(s.number) then
+			server = s.name
 			break
 		end
 	end
@@ -2751,15 +2761,15 @@ function downloadFileFromUrlToPath(url, path)
 				--print(("Скачивание %d/%d"):format(pos, total_size))
 			elseif type == "finished" then
 				if download_helper then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка новой версии хелпера заверешна успешно! Перезагрузка..',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка новой версии хелпера завершена успешно! Перезагрузка..',  message_color)
 					reload_script = true
 					thisScript():unload()
 				elseif download_smartuk then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи розыска для ' .. getARZServerNumber() ..  ' сервера заверешна успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи розыска для сервера ' .. getARZServerName(getARZServerNumber()) .. '[' .. getARZServerNumber() ..  '] завершена успешно!',  message_color)
 					download_smartuk = false
 					load_smart_uk()
 				elseif download_smartpdd then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов для ' .. getARZServerNumber() ..  ' сервера заверешна успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов для сервера ' .. getARZServerName(getARZServerNumber()) .. '[' .. getARZServerNumber() ..  '] завершена успешно!',  message_color)
 					download_smartpdd = false
 					load_smart_pdd()
 				elseif download_arzvehicles then
@@ -2775,15 +2785,15 @@ function downloadFileFromUrlToPath(url, path)
 		downloadUrlToFile(url, path, function(id, status)
 			if status == 6 then -- ENDDOWNLOADDATA
 				if download_helper then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка новой версии хелпера заверешна успешно! Перезагрузка..',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка новой версии хелпера завершена успешно! Перезагрузка..',  message_color)
 					reload_script = true
 					thisScript():unload()
 				elseif download_smartuk then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи розыска для ' .. getARZServerNumber() ..  ' сервера заверешна успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи розыска для сервера ' .. getARZServerName(getARZServerNumber()) .. '[' .. getARZServerNumber() ..  '] завершена успешно!',  message_color)
 					download_smartuk = false
 					load_smart_uk()
 				elseif download_smartpdd then
-					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов для ' .. getARZServerNumber() ..  ' сервера заверешна успешно!',  message_color)
+					sampAddChatMessage('[Justice Helper] {ffffff}Загрузка умной выдачи штрафов для сервера ' .. getARZServerName(getARZServerNumber()) .. '[' .. getARZServerNumber() ..  '] завершена успешно!',  message_color)
 					download_smartpdd = false
 					load_smart_pdd()
 				elseif download_arzvehicles then
@@ -2982,12 +2992,31 @@ function sampev.onServerMessage(color,text)
 		local nick, mins = text:match('Вы посадили игрока (.+) в тюрьму на (%d+) минут')
 		sampSendChat('/r ' .. tagReplacements.my_doklad_nick() .. ' на CONTROL. Преступник ' .. nick:gsub('_', ' ') .. ' посажен в КПЗ на ' .. mins .. ' минут!')
 	end
-	if text:find('Bogdan_Martelli%[%d+%]') and getARZServerNumber():find('20') then
-		local lastColor = text:match("{%x+}$")
+	if (text:find('Bogdan_Martelli%[%d+%]') and getARZServerNumber():find('20')) or text:find('%[20%]Bogdan_Martelli') then
+		local lastColor = text:match("(.+){%x+}$")
    		if not lastColor then
 			lastColor = "{" .. rgba_to_hex(color) .. "}"
 		end
-		text = string.gsub(text, '(Bogdan_Martelli%[%d+%])', '%1 ' .. message_color_hex .. '(MTG MODS)' .. lastColor)
+		if text:find('%[VIP ADV%]') or text:find('%[FOREVER%]') then
+			lastColor = "{FFFFFF}"
+		end
+		if text:find('%[20%]Bogdan_Martelli%[%d+%]') then
+			-- Случай 2: [20]Bogdan_Martelli[123]
+			local id = text:match('%[20%]Bogdan_Martelli%[(%d+)%]') or ''
+			text = string.gsub(text, '%[20%]Bogdan_Martelli%[%d+%]', message_color_hex .. '[20]MTG MODS[' .. id .. ']' .. lastColor)
+		
+		elseif text:find('%[20%]Bogdan_Martelli') then
+			-- Случай 1: [20]Bogdan_Martelli
+			text = string.gsub(text, '%[20%]Bogdan_Martelli', message_color_hex .. '[20]MTG MODS' .. lastColor)
+		
+		elseif text:find('Bogdan_Martelli%[%d+%]') then
+			-- Случай 3: Bogdan_Martelli[123]
+			local id = text:match('Bogdan_Martelli%[(%d+)%]') or ''
+			text = string.gsub(text, 'Bogdan_Martelli%[%d+%]', message_color_hex .. 'MTG MODS[' .. id .. ']' .. lastColor)
+		elseif text:find('Bogdan_Martelli') then
+			-- Случай 3: Bogdan_Martelli
+			text = string.gsub(text, 'Bogdan_Martelli', message_color_hex .. 'MTG MODS' .. lastColor)
+		end
 		return {color,text}
 	end
 end
@@ -4075,8 +4104,6 @@ imgui.OnFrame(
 						imgui.Separator()
 						imgui.CenterText(u8'Вы можете вручную заполнить его по кнопке "Отредактировать"')
 						imgui.CenterText(u8'Затем вы сможете поделиться им на нашем Discord и он будет загружен в базу данных')
-						imgui.CenterText(u8'Вам надо будет скинуть файл SmartUK.json , который находиться по пути:')
-						imgui.CenterText(u8(path_uk))
 						imgui.Separator()
 						if imgui.Button(fa.CIRCLE_XMARK .. u8' Хорошо', imgui.ImVec2(550 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
 							imgui.CloseCurrentPopup()
@@ -4309,8 +4336,6 @@ imgui.OnFrame(
 						imgui.Separator()
 						imgui.CenterText(u8'Вы можете вручную заполнить его по кнопке "Отредактировать"')
 						imgui.CenterText(u8'Затем вы сможете поделиться им на нашем Discord и он будет загружен в базу данных')
-						imgui.CenterText(u8'Вам надо будет скинуть файл SmartPDD.json , который находиться по пути:')
-						imgui.CenterText(u8(path_pdd))
 						imgui.Separator()
 						if imgui.Button(fa.CIRCLE_XMARK .. u8' Хорошо', imgui.ImVec2(550 * MONET_DPI_SCALE, 25 * MONET_DPI_SCALE)) then
 							imgui.CloseCurrentPopup()
