@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of Justice (PD and FBI) ??and the Ministry of Defense (Army)')
 script_author("MTG MODS")
-script_version("1.3")
+script_version("1.3 Стабильная")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -4709,8 +4709,8 @@ imgui.OnFrame(
 				imgui.Separator()
 				imgui.Text(fa.BOOK ..u8" Гайд по использованию хелпера:")
 				imgui.SameLine()
-				if imgui.SmallButton(u8'Будет позже...') then
-					-- openLink('')
+				if imgui.SmallButton(u8'https://youtu.be/dvTe0A61Hjw') then
+					openLink('https://youtu.be/dvTe0A61Hjw')
 				end
 				imgui.Separator()
 				imgui.Text(fa.HEADSET..u8" Тех.поддержка по хелперу:")
@@ -6576,7 +6576,7 @@ function main()
 			end
 		end
 	
-		if ((os.date("%M", os.time()) == "55" and os.date("%S", os.time()) == "00") or (os.date("%M", os.time()) == "25" and os.date("%S", os.time()) == "00")) and getARZServerNumber() ~= 200 --[[ vise sity ]] then
+		if ((os.date("%M", os.time()) == "55" and os.date("%S", os.time()) == "00") or (os.date("%M", os.time()) == "25" and os.date("%S", os.time()) == "00")) and settings.general.auto_notify_payday and getARZServerNumber() ~= '200' then
 			sampAddChatMessage('[Justice Helper] {ffffff}Через 5 минут будет PAYDAY. Наденьте форму чтобы не пропустить зарплату!', message_color)
 			wait(1000)
 		end
