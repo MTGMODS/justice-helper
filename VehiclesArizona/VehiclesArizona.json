@@ -2846,7 +2846,7 @@
     },
     {
         "model_id": 16970,
-        "name": "√¿« Ã-20",
+        "name": "–ì–ê–ó –ú-20",
         "server_id": 969
     },
     {
@@ -3176,7 +3176,7 @@
     },
     {
         "model_id": 15669,
-        "name": "√¿« 21",
+        "name": "–ì–ê–ó 21",
         "server_id": 1035
     },
     {
@@ -3221,7 +3221,7 @@
     },
     {
         "model_id": 15870,
-        "name": "¬‡Á 2109",
+        "name": "–í–∞–∑ 2109",
         "server_id": 1044
     },
     {
@@ -3231,7 +3231,7 @@
     },
     {
         "model_id": 15934,
-        "name": " ‡Ï‡Á",
+        "name": "–ö–∞–º–∞–∑",
         "server_id": 1046
     },
     {
@@ -3341,17 +3341,17 @@
     },
     {
         "model_id": 12605,
-        "name": "ƒÓÌ-Û·ËÈˆ‡",
+        "name": "–î—Ä–æ–Ω-—É–±–∏–π—Ü–∞",
         "server_id": 1068
     },
     {
         "model_id": 12606,
-        "name": "—‡ÌË √ËÌ˜‡",
+        "name": "–°–∞–Ω–∏ –ì—Ä–∏–Ω—á–∞",
         "server_id": 1069
     },
     {
         "model_id": 12607,
-        "name": "—‡ÌË —‡ÌÚ˚",
+        "name": "–°–∞–Ω–∏ –°–∞–Ω—Ç—ã",
         "server_id": 1070
     },
     {
@@ -3601,7 +3601,7 @@
     },
     {
         "model_id": 16862,
-        "name": "¬¿« 2107",
+        "name": "–í–ê–ó 2107",
         "server_id": 1120
     },
     {
@@ -3658,5 +3658,140 @@
         "model_id": 16874,
         "name": "Toyota Land Cruiser 200 FBI",
         "server_id": 1131
+    },
+    {
+        "model_id": 16932,
+        "name": "BMW M3 Touring",
+        "server_id": 1132
+    },
+    {
+        "model_id": 16933,
+        "name": "BigBul",
+        "server_id": 1133
+    },
+    {
+        "model_id": 15619,
+        "name": "Porsche 911 –ë–∏–≥–±—É–ª—å",
+        "server_id": 1134
+    },
+    {
+        "model_id": 6709,
+        "name": "Ural with Donut",
+        "server_id": 1135
+    },
+    {
+        "model_id": 6720,
+        "name": "Ural with Scooby-Doo",
+        "server_id": 1136
+    },
+    {
+        "model_id": 6733,
+        "name": "Ural with Slender",
+        "server_id": 1137
+    },
+    {
+        "model_id": 6824,
+        "name": "Ural with Wednesday",
+        "server_id": 1138
+    },
+    {
+        "model_id": 7396,
+        "name": "Mercedes-Benz Wendsday",
+        "server_id": 1139
+    },
+    {
+        "model_id": 9199,
+        "name": "Wendsday hearse",
+        "server_id": 1140
+    },
+    {
+        "model_id": 9268,
+        "name": "Ghostbusters car",
+        "server_id": 1141
+    },
+    {
+        "model_id": 15554,
+        "name": "Mercedes Benz Vito fire truck",
+        "server_id": 1142
+    },
+    {
+        "model_id": 15560,
+        "name": "Ford Exploer fire truck",
+        "server_id": 1143
+    },
+    {
+        "model_id": 15564,
+        "name": "Opel Vivaro courier",
+        "server_id": 1144
+    },
+    {
+        "model_id": 15565,
+        "name": "Audi RS Q8 Mansory",
+        "server_id": 1145
+    },
+    {
+        "model_id": 15569,
+        "name": "BMW XM Mansory",
+        "server_id": 1146
+    },
+    {
+        "model_id": 15572,
+        "name": "Rolls Royse Spectre Mansory",
+        "server_id": 1147
+    },
+    {
+        "model_id": 15871,
+        "name": "Mercedes Benz AMG-GT63 Coupe 2024",
+        "server_id": 1148
+    },
+    {
+        "model_id": 15872,
+        "name": "Ford Bronco 2021",
+        "server_id": 1149
+    },
+    {
+        "model_id": 15873,
+        "name": "Mercedes Benz GLC AMG 2025",
+        "server_id": 1150
+    },
+    {
+        "model_id": 15875,
+        "name": "Honda S2000",
+        "server_id": 1151
+    },
+    {
+        "model_id": 15876,
+        "name": "Lada 2114",
+        "server_id": 1152
+    },
+    {
+        "model_id": 15877,
+        "name": "BMW M5 Stingray",
+        "server_id": 1153
+    },
+    {
+        "model_id": 15878,
+        "name": "Renault Arkana Taxi",
+        "server_id": 1154
+    },
+    {
+        "model_id": 15879,
+        "name": "Mercedes Benz E63 Taxi",
+        "server_id": 1155
+    },
+    {
+        "model_id": 15880,
+        "name": "Ford Fusion Taxi",
+        "server_id": 1156
+    },
+    {
+        "model_id": 15881,
+        "name": "Mercedes Benz S500 W223 Taxi",
+        "server_id": 1157
+    },
+    {
+        "model_id": 15888,
+        "name": "Cadillac Escalade 2023 Taxi",
+        "server_id": 1158
     }
 ]
