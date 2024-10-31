@@ -1185,6 +1185,7 @@ local auto_uval_checker = false
 local platoon_check = false
 
 local enemy = {}
+local enem_show = false
 
 local InfraredVision = false
 local NightVision = false
