@@ -2881,61 +2881,68 @@ function sampev.onServerMessage(color,text)
 	if (settings.general.auto_uval and tonumber(settings.player_info.fraction_rank_number) >= 9) then
 		if text:find("%[(.-)%] (.-) (.-)%[(.-)%]: (.+)") and color == 766526463 then -- /f /fb или /r /rb без тэга 
 			local tag, rank, name, playerID, message = string.match(text, "%[(.-)%] (.+) (.-)%[(.-)%]: (.+)")
-			if ((not message:find(" отправьте (.+) +++ чтобы уволится ПСЖ!") and not message:find("Сотрудник (.+) был уволен по причине(.+)")) and (message:rupper():find("ПСЖ") or message:rupper():find("ПСЖ.") or message:rupper():find("УВОЛЬТЕ") or message:find("УВОЛЬТЕ.") or message:rupper():find("УВАЛ") or message:rupper():find("УВАЛ."))) then
-				message3 = message2
-				message2 = message1
-				message1 = text
-				PlayerID = playerID
-				sampAddChatMessage(text, 0xFF2DB043)
-				if message3 == text then
+			lua_thread.create(function ()
+				wait(50)
+				if ((not message:find(" отправьте (.+) +++ чтобы уволится ПСЖ!") and not message:find("Сотрудник (.+) был уволен по причине(.+)")) and (message:rupper():find("ПСЖ") or message:rupper():find("ПСЖ.") or message:rupper():find("УВОЛЬТЕ") or message:find("УВОЛЬТЕ.") or message:rupper():find("УВАЛ") or message:rupper():find("УВАЛ."))) then
+					message3 = message2
+					message2 = message1
+					message1 = text
+					PlayerID = playerID
+					sampAddChatMessage(text, 0xFF2DB043)
+					if message3 == text then
+						auto_uval_checker = true
+						sampSendChat('/fmute ' .. playerID .. ' 1 [AutoUval] Ожидайте...')
+					elseif tag == "R" then
+						sampSendChat("/rb "..name.." отправьте /rb +++ чтобы уволится ПСЖ!")
+					elseif tag == "F" then
+						sampSendChat("/fb "..name.." отправьте /fb +++ чтобы уволится ПСЖ!")
+					end
+				elseif ((message == "(( +++ ))" or message == "(( +++. ))") and (PlayerID == playerID)) then
+					sampAddChatMessage(text, 0xFF2DB043)
 					auto_uval_checker = true
-					sampSendChat('/fmute ' .. playerID .. ' 1 [AutoUval] Ожидайте...')
-				elseif tag == "R" then
-					sampSendChat("/rb "..name.." отправьте /rb +++ чтобы уволится ПСЖ!")
-				elseif tag == "F" then
-					sampSendChat("/fb "..name.." отправьте /fb +++ чтобы уволится ПСЖ!")
+					sampSendChat('/fmute ' .. PlayerID .. ' 1 [AutoUval] Ожидайте...')
 				end
-			elseif ((message == "(( +++ ))" or message == "(( +++. ))") and (PlayerID == playerID)) then
-			 	sampAddChatMessage(text, 0xFF2DB043)
-				auto_uval_checker = true
-				sampSendChat('/fmute ' .. PlayerID .. ' 1 [AutoUval] Ожидайте...')
-			end
+			end)
 		elseif text:find("%[(.-)%] %[(.-)%] (.+) (.-)%[(.-)%]: (.+)") and color == 766526463 then -- /r или /f с тэгом
 			local tag, tag2, rank, name, playerID, message = string.match(text, "%[(.-)%] %[(.-)%] (.+) (.-)%[(.-)%]: (.+)")
-			if not message:find(" отправьте (.+) +++ чтобы уволится ПСЖ!") and not message:find("Сотрудник (.+) был уволен по причине(.+)") and message:rupper():find("ПСЖ") or message:rupper():find("ПСЖ.") or message:rupper():find("УВОЛЬТЕ") or message:find("УВОЛЬТЕ.") or message:rupper():find("УВАЛ") or message:rupper():find("УВАЛ.") then
-				message3 = message2
-				message2 = message1
-				message1 = text
-				PlayerID = playerID	
-				sampAddChatMessage(text, 0xFF2DB043)
-				if message3 == text then
+			lua_thread.create(function ()
+				wait(50)
+				if not message:find(" отправьте (.+) +++ чтобы уволится ПСЖ!") and not message:find("Сотрудник (.+) был уволен по причине(.+)") and message:rupper():find("ПСЖ") or message:rupper():find("ПСЖ.") or message:rupper():find("УВОЛЬТЕ") or message:find("УВОЛЬТЕ.") or message:rupper():find("УВАЛ") or message:rupper():find("УВАЛ.") then
+					message3 = message2
+					message2 = message1
+					message1 = text
+					PlayerID = playerID	
+					sampAddChatMessage(text, 0xFF2DB043)
+					if message3 == text then
+						auto_uval_checker = true
+						sampSendChat('/fmute ' .. playerID .. ' 1 [AutoUval] Ожидайте...')
+					elseif tag == "R" then
+						sampSendChat("/rb "..name.."["..playerID.."], отправьте /rb +++ чтобы уволится ПСЖ!")
+					elseif tag == "F" then
+						sampSendChat("/fb "..name.."["..playerID.."], отправьте /fb +++ чтобы уволится ПСЖ!")
+					end
+				elseif ((message == "(( +++ ))" or  message == "(( +++. ))") and (PlayerID == playerID)) then
 					auto_uval_checker = true
 					sampSendChat('/fmute ' .. playerID .. ' 1 [AutoUval] Ожидайте...')
-				elseif tag == "R" then
-					sampSendChat("/rb "..name.."["..playerID.."], отправьте /rb +++ чтобы уволится ПСЖ!")
-				elseif tag == "F" then
-					sampSendChat("/fb "..name.."["..playerID.."], отправьте /fb +++ чтобы уволится ПСЖ!")
 				end
-			elseif ((message == "(( +++ ))" or  message == "(( +++. ))") and (PlayerID == playerID)) then
-				sampAddChatMessage(text, 0xFF2DB043)
-				auto_uval_checker = true
-				sampSendChat('/fmute ' .. playerID .. ' 1 [AutoUval] Ожидайте...')
-			end
+			end)
 		end
 		
 		if text:find("(.+) заглушил%(а%) игрока (.+) на 1 минут. Причина: %[AutoUval%] Ожидайте...") and auto_uval_checker then
-			sampAddChatMessage(text, message_color)
 			local Name, PlayerName, Time, Reason = text:match("(.+) заглушил%(а%) игрока (.+) на (%d+) минут. Причина: (.+)")
 			local MyName = sampGetPlayerNickname(select(2, sampGetPlayerIdByCharHandle(PLAYER_PED)))
-			if Name == MyName then
-				sampAddChatMessage('[Justice Helper] {ffffff}Увольняю игрока ' .. sampGetPlayerNickname(PlayerID) .. '!', message_color)
-				auto_uval_checker = false
-				temp = PlayerID .. ' ПСЖ'
-				find_and_use_command("/uninvite {arg_id} {arg2}", temp)
-			else
-				sampAddChatMessage('[Justice Helper] {ffffff}Другой заместитель/лидер уже увольняет игрока ' .. sampGetPlayerNickname(PlayerID) .. '!', message_color)
-				auto_uval_checker = false
-			end
+			lua_thread.create(function ()
+				wait(50)
+				if Name == MyName then
+					sampAddChatMessage('[Justice Helper] {ffffff}Увольняю игрока ' .. sampGetPlayerNickname(PlayerID) .. '!', message_color)
+					auto_uval_checker = false
+					temp = PlayerID .. ' ПСЖ'
+					find_and_use_command("/uninvite {arg_id} {arg2}", temp)
+				else
+					sampAddChatMessage('[Justice Helper] {ffffff}Другой заместитель/лидер уже увольняет игрока ' .. sampGetPlayerNickname(PlayerID) .. '!', message_color)
+					auto_uval_checker = false
+				end
+			end)
 		end
 	end
 	if tonumber(settings.player_info.fraction_rank_number) >= 5 then
@@ -3208,8 +3215,8 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 		sampSendDialogResponse(dialogid, 0, 2, 0)
 		return false 
 	end
-
 	if members_check and title:find('(.+)%(В сети: (%d+)%)') then -- мемберс 
+	
         local count = 0
         local next_page = false
         local next_page_i = 0
@@ -3218,7 +3225,8 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
         for line in text:gmatch('[^\r\n]+') do
             count = count + 1
             if not line:find('Ник') and not line:find('страница') then
-				local color, nickname, id, rank, rank_number, warns, afk = string.match(line, '{(.+)}(.+)%((%d+)%)\t(.+)%((%d+)%)\t(%d+) %((%d+)')
+				--local color, nickname, id, rank, rank_number, warns, afk = string.match(line, '{(.+)}(.+)%((%d+)%)\t(.+)%((%d+)%)\t(%d+) %((%d+)')
+				local color, nickname, id, rank, rank_number, color2, warns, afk = string.match(line, "{(%x+)}([^%(]+)%((%d+)%)%s+([^%(]+)%((%d+)%)%s+{(%x+)}(%d+) %((%d)(.+)шт")
 				if color ~= nil and nickname ~= nil and id ~= nil and rank ~= nil and rank_number ~= nil and warns ~= nil and afk ~= nil then
 					local working = false
 					if color:find('FF3B3B') then
@@ -3226,7 +3234,11 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
 					elseif color:find('FFFFFF') then
 						working = true
 					end
-					table.insert(members_new, { nick = nickname, id = id, rank = rank, rank_number = rank_number, warns = warns, afk = afk, working = working })
+					if nickname:find('%[%:(.+)%] (.+)') then
+						tag, nick = nickname:match('%[(.+)%] (.+)')
+						nickname = nick
+					end
+					table.insert(members_new, { nick = nickname, id = id, rank = rank, rank_number = rank_number, warns = warns, afk = afk, working = working})
 				end
             end
             if line:match('Следующая страница') then
@@ -3238,11 +3250,15 @@ function sampev.onShowDialog(dialogid, style, title, button1, button2, text)
             sampSendDialogResponse(dialogid, 1, next_page_i, 0)
             next_page = false
             next_pagei = 0
-        else
+		elseif #members_new ~= 0 then
             sampSendDialogResponse(dialogid, 0, 0, 0)
 			members = members_new
 			members_check = false
 			MembersWindow[0] = true
+		else
+			sampSendDialogResponse(dialogid, 0, 0, 0)
+			sampAddChatMessage('[Justice Helper]{ffffff} Список сотрудников пуст!', message_color)
+			members_check = false
         end
         return false
     end
