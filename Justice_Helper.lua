@@ -3,7 +3,7 @@
 script_name("Justice Helper")
 script_description('This is a Cross-platform Lua script helper for Arizona RP players who work in the Ministry of Justice (PD and FBI) ??and the Ministry of Defense (Army)')
 script_author("MTG MODS")
-script_version("1.3 Stable")
+script_version("1.4 Stable")
 
 require('lib.moonloader')
 require ('encoding').default = 'CP1251'
@@ -1529,6 +1529,7 @@ function initialize_commands()
 		end
 	end)
 	sampRegisterChatCommand("debug", function() debug_mode = not debug_mode end)
+	sampRegisterChatCommand("afind", function() sampAddChatMessage('[Justice Helper] {ffffff}Данная функция доступна только в платной версии 2.0 (покупать у MTG MODS)', message_color) end)
 	sampRegisterChatCommand("mask", function() 
 		if not isActiveCommand then
 			isActiveCommand = true
@@ -2542,44 +2543,45 @@ function argbToRgbNormalized(argb)
     return {normalizedR, normalizedG, normalizedB}
 end
 
+local servers = {
+	{name = 'Phoenix', number = '01'},
+	{name = 'Tucson', number = '02'},
+	{name = 'Scottdale', number = '03'},
+	{name = 'Chandler', number = '04'},
+	{name = 'Brainburg', number = '05'},
+	{name = 'Saint%-Rose', number = '06'},
+	{name = 'Mesa', number = '07'},
+	{name = 'Red%-Rock', number = '08'},
+	{name = 'Yuma', number = '09'},
+	{name = 'Surprise', number = '10'},
+	{name = 'Prescott', number = '11'},
+	{name = 'Glendale', number = '12'},
+	{name = 'Kingman', number = '13'},
+	{name = 'Winslow', number = '14'},
+	{name = 'Payson', number = '15'},
+	{name = 'Gilbert', number = '16'},
+	{name = 'Show Low', number = '17'},
+	{name = 'Casa%-Grande', number = '18'},
+	{name = 'Page', number = '19'},
+	{name = 'Sun%-City', number = '20'},
+	{name = 'Queen%-Creek', number = '21'},
+	{name = 'Sedona', number = '22'},
+	{name = 'Holiday', number = '23'},
+	{name = 'Wednesday', number = '24'},
+	{name = 'Yava', number = '25'},
+	{name = 'Faraway', number = '26'},
+	{name = 'Bumble Bee', number = '27'},
+	{name = 'Christmas', number = '28'},
+	{name = 'Mirage', number = '29'},
+	{name = 'Love', number = '30'},
+	{name = 'Drake', number = '31'},
+	{name = 'Mobile III', number = '103'},
+	{name = 'Mobile II', number = '102'},
+	{name = 'Mobile I', number = '101'},
+	{name = 'Vice City', number = '200'},
+}
 function getARZServerNumber()
 	local server = 0
-	local servers = {
-		{name = 'Phoenix', number = '01'},
-		{name = 'Tucson', number = '02'},
-		{name = 'Scottdale', number = '03'},
-		{name = 'Chandler', number = '04'},
-		{name = 'Brainburg', number = '05'},
-		{name = 'Saint%-Rose', number = '06'},
-		{name = 'Mesa', number = '07'},
-		{name = 'Red%-Rock', number = '08'},
-		{name = 'Yuma', number = '09'},
-		{name = 'Surprise', number = '10'},
-		{name = 'Prescott', number = '11'},
-		{name = 'Glendale', number = '12'},
-		{name = 'Kingman', number = '13'},
-		{name = 'Winslow', number = '14'},
-		{name = 'Payson', number = '15'},
-		{name = 'Gilbert', number = '16'},
-		{name = 'Show Low', number = '17'},
-		{name = 'Casa%-Grande', number = '18'},
-		{name = 'Page', number = '19'},
-		{name = 'Sun%-City', number = '20'},
-		{name = 'Queen%-Creek', number = '21'},
-		{name = 'Sedona', number = '22'},
-		{name = 'Holiday', number = '23'},
-		{name = 'Wednesday', number = '24'},
-		{name = 'Yava', number = '25'},
-		{name = 'Faraway', number = '26'},
-		{name = 'Bumble Bee', number = '27'},
-		{name = 'Christmas', number = '28'},
-		{name = 'Mirage', number = '29'},
-		{name = 'Love', number = '30'},
-		{name = 'Mobile III', number = '103'},
-		{name = 'Mobile II', number = '102'},
-		{name = 'Mobile I', number = '101'},
-		{name = 'Vice City', number = '200'},
-	}
 	for _, s in ipairs(servers) do
 		if sampGetCurrentServerName():find(s.name) then
 			server = s.number
@@ -2590,42 +2592,6 @@ function getARZServerNumber()
 end
 function getARZServerName(number)
 	local server = ''
-	local servers = {
-		{name = 'Phoenix', number = '01'},
-		{name = 'Tucson', number = '02'},
-		{name = 'Scottdale', number = '03'},
-		{name = 'Chandler', number = '04'},
-		{name = 'Brainburg', number = '05'},
-		{name = 'Saint-Rose', number = '06'},
-		{name = 'Mesa', number = '07'},
-		{name = 'Red-Rock', number = '08'},
-		{name = 'Yuma', number = '09'},
-		{name = 'Surprise', number = '10'},
-		{name = 'Prescott', number = '11'},
-		{name = 'Glendale', number = '12'},
-		{name = 'Kingman', number = '13'},
-		{name = 'Winslow', number = '14'},
-		{name = 'Payson', number = '15'},
-		{name = 'Gilbert', number = '16'},
-		{name = 'Show Low', number = '17'},
-		{name = 'Casa-Grande', number = '18'},
-		{name = 'Page', number = '19'},
-		{name = 'Sun-City', number = '20'},
-		{name = 'Queen-Creek', number = '21'},
-		{name = 'Sedona', number = '22'},
-		{name = 'Holiday', number = '23'},
-		{name = 'Wednesday', number = '24'},
-		{name = 'Yava', number = '25'},
-		{name = 'Faraway', number = '26'},
-		{name = 'Bumble Bee', number = '27'},
-		{name = 'Christmas', number = '28'},
-		{name = 'Mirage', number = '29'},
-		{name = 'Love', number = '30'},
-		{name = 'Mobile III', number = '103'},
-		{name = 'Mobile II', number = '102'},
-		{name = 'Mobile I', number = '101'},
-		{name = 'Vice City', number = '200'},
-	}
 	for _, s in ipairs(servers) do
 		if tostring(number) == tostring(s.number) then
 			server = s.name
@@ -3729,6 +3695,14 @@ imgui.OnFrame(
 							imgui.CenterColumnText(u8"/mask")
 							imgui.NextColumn()
 							imgui.CenterColumnText(u8"Надеть/снять балаклаву")
+							imgui.NextColumn()
+							imgui.CenterColumnText(u8"Недоступно")
+							imgui.Columns(1)
+							imgui.Separator()
+							imgui.Columns(3)
+							imgui.CenterColumnText(u8"/afind")
+							imgui.NextColumn()
+							imgui.CenterColumnText(u8"Авто /find (игроки без розыска)")
 							imgui.NextColumn()
 							imgui.CenterColumnText(u8"Недоступно")
 							imgui.Columns(1)
