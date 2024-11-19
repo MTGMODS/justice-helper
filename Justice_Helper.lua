@@ -2605,7 +2605,7 @@ function check_update()
 	sampAddChatMessage('[Justice Helper] {ffffff}Начинаю проверку на наличие обновлений...', message_color)
 	local path = configDirectory .. "/Update_Info.json"
 	os.remove(path)
-	local url = 'https://raw.githubusercontent.com/MTGMODS/justice-helper/main/Update_Info.json'
+	local url = 'https://github.com/MTGMODS/justice-helper/raw/refs/heads/main/Update_Info.json'
 	if isMonetLoader() then
 		downloadToFile(url, path, function(type, pos, total_size)
 			if type == "finished" then
